@@ -1,7 +1,6 @@
-
-import { useCallback, useState, type FormEvent } from 'react';
+import { useCallback, useState, type FormEvent,useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { motion,AnimatePresence} from 'framer-motion';
 import {
   ArrowRight,
   ArrowDown,
@@ -15,10 +14,8 @@ import {
   MessageSquareText,
   Send,
 } from 'lucide-react';
-
 import HeroCarousel from '@/components/HeroCarousel';
 import ScrollReveal from '@/components/ScrollReveal';
-import OnboardingForm from '@/components/OnboardingForm';
 
 import {
   heroImages,
@@ -26,9 +23,7 @@ import {
   galleryImages,
   onboardingImage,
   closingImage,
-  imageComposition,
 } from '@/lib/images';
-
 import { supabase } from '@/lib/supabase';
 
 const challengesList = [
@@ -91,20 +86,51 @@ const initialFeedback = {
   consentAnonymized: false,
 };
 
+const heroCaptions = [
+  {
+    title: 'A PG in Bangalore',
+    subtitle: 'A comfortable space to call your own.',
+  },
+  {
+    title: 'A 3BHK in Delhi',
+    subtitle: 'More room to live, connect and grow.',
+  },
+  {
+    title: 'A 1RK in Mumbai',
+    subtitle: 'Your own little corner in a big city.',
+  },
+  {
+    title: 'A shared flat in Pune',
+    subtitle: 'Find your people, not just a place.',
+  },
+  {
+    title: 'A room near your college',
+    subtitle: 'Closer to campus. Closer to your next chapter.',
+  },
+];
+
 export default function Home() {
   const navigate = useNavigate();
-
   const [feedback, setFeedback] = useState(initialFeedback);
   const [feedbackStatus, setFeedbackStatus] = useState<
     'idle' | 'loading' | 'success' | 'error'
   >('idle');
   const [feedbackError, setFeedbackError] = useState('');
+  const [activeHeroCaption, setActiveHeroCaption] = useState(0);
 
-  const scrollToOnboarding = useCallback(() => {
-    document
-      .getElementById('onboarding')
-      ?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  }, []);
+useEffect(() => {
+  const interval = window.setInterval(() => {
+    setActiveHeroCaption((current) => (current + 1) % heroCaptions.length);
+  }, 5000);
+
+  return () => window.clearInterval(interval);
+}, []);
+
+  
+const scrollToOnboarding = useCallback(() => {
+  navigate('/get-started');
+}, [navigate]);
+
 
   const scrollToFeedback = useCallback(() => {
     document
@@ -178,7 +204,6 @@ export default function Home() {
       setFeedbackStatus('success');
     } catch (error) {
       console.error('Unable to submit user feedback:', error);
-
       setFeedbackStatus('error');
       setFeedbackError(
         'We could not submit your feedback right now. Please try again.'
@@ -188,110 +213,262 @@ export default function Home() {
 
   return (
     <div className="overflow-hidden bg-ivory text-charcoal">
-      {/* ==================== HERO ==================== */}
+    
+{/* ==================== HERO ==================== */}
+<section className="relative h-screen min-h-[600px] w-full overflow-hidden">
+  <HeroCarousel images={heroImages} />
 
-      <section className="relative h-screen min-h-[600px] w-full overflow-hidden">
-        <HeroCarousel images={heroImages} />
+  {/* Readability overlay */}
+  <div className="pointer-events-none absolute inset-0 z-[1] bg-gradient-to-b from-black/10 via-transparent to-black/40" />
 
-        <div className="relative z-10 flex h-full flex-col items-center justify-center px-5 text-center">
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{
-              duration: 1,
-              delay: 0.3,
-              ease: [0.22, 1, 0.36, 1],
-            }}
-            className="max-w-3xl"
-          >
-            <h1 className="font-display text-4xl font-extrabold leading-[1.05] tracking-tight-hero text-ivory text-balance sm:text-5xl lg:text-7xl">
-              Find a place that
-              <br className="hidden sm:block" /> feels like yours.
-            </h1>
+  {/* Main heading */}
+  <div className="relative z-10 flex h-full flex-col items-center justify-center px-5 text-center">
+    <motion.div
+      initial={{ opacity: 0, y: 30 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{
+        duration: 1,
+        delay: 0.3,
+        ease: [0.22, 1, 0.36, 1],
+      }}
+      className="max-w-3xl"
+    >
+      <h1 className="font-display text-4xl font-extrabold leading-[1.05] tracking-tight-hero text-ivory text-balance sm:text-5xl lg:text-7xl">
+        Find a place that
+        <br className="hidden sm:block" /> feels like yours.
+      </h1>
 
-            <p className="mx-auto mt-6 max-w-xl text-lg leading-relaxed text-ivory/85 text-pretty sm:text-xl">
-              Tell us a little about yourself. We&apos;ll help you take the
-              next step toward finding your place.
-            </p>
-          </motion.div>
+      <p className="mx-auto mt-6 max-w-xl text-lg leading-relaxed text-ivory/90 text-pretty sm:text-xl">
+        Your next home should feel right. Tell us what you&apos;re looking
+        for, and take the first step with sthero.
+      </p>
 
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{
-              duration: 0.8,
-              delay: 0.6,
-              ease: [0.22, 1, 0.36, 1],
-            }}
-            className="mt-10 flex flex-col items-center gap-4 sm:flex-row"
-          >
-            <button
-              onClick={scrollToOnboarding}
-              className="group inline-flex items-center gap-2 rounded-full bg-ivory px-7 py-3.5 text-base font-semibold text-charcoal transition-all duration-300 hover:bg-sage hover:text-ivory focus:outline-none focus-visible:ring-2 focus-visible:ring-ivory"
-            >
-              Get Started
-              <ArrowRight className="h-5 w-5 transition-transform duration-300 group-hover:translate-x-0.5" />
-            </button>
+      <motion.button
+        type="button"
+        onClick={scrollToOnboarding}
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.7, delay: 0.6 }}
+        className="group mt-9 inline-flex items-center gap-2 rounded-full bg-ivory px-7 py-3.5 text-base font-semibold text-charcoal shadow-lg transition-all duration-300 hover:bg-sage hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-ivory"
+      >
+        Find Your Place
+        <ArrowRight className="h-5 w-5 transition-transform duration-300 group-hover:translate-x-1" />
+      </motion.button>
+    </motion.div>
+  </div>
 
-            <button
-              onClick={goToAbout}
-              className="inline-flex items-center gap-2 rounded-full border border-ivory/40 px-7 py-3.5 text-base font-medium text-ivory transition-all duration-300 hover:bg-ivory/10"
-            >
-              Discover sthero
-            </button>
-          </motion.div>
+  {/* Animated housing caption — bottom-left */}
+  <div
+    className="absolute bottom-8 left-5 z-20 max-w-[290px] sm:bottom-12 sm:left-10 sm:max-w-sm lg:bottom-14 lg:left-14"
+    aria-live="polite"
+    aria-atomic="true"
+  >
+    <AnimatePresence mode="wait">
+      <motion.div
+        key={activeHeroCaption}
+        initial={{ opacity: 0, x: -14, filter: 'blur(3px)' }}
+        animate={{ opacity: 1, x: 0, filter: 'blur(0px)' }}
+        exit={{ opacity: 0, x: 10, filter: 'blur(3px)' }}
+        transition={{
+          duration: 0.45,
+          ease: [0.22, 1, 0.36, 1],
+        }}
+        className="rounded-xl border border-white/20 bg-black/25 px-4 py-3 shadow-lg backdrop-blur-md sm:px-5 sm:py-4"
+      >
+        <div className="flex items-center gap-2">
+          <MapPin className="h-3.5 w-3.5 shrink-0 text-white/80" />
+
+          <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-white/75 sm:text-xs">
+            A place to call home
+          </span>
         </div>
 
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 1.2, duration: 1 }}
-          className="absolute bottom-8 right-8 hidden flex-col items-center gap-2 text-ivory/60 lg:flex"
-        >
-          <span className="text-xs uppercase tracking-wide-nav">Scroll</span>
-          <ArrowDown className="h-4 w-4 animate-bounce" />
-        </motion.div>
-      </section>
+        <h2 className="mt-1.5 font-display text-lg font-bold leading-snug text-white drop-shadow sm:text-xl lg:text-2xl">
+          {heroCaptions[activeHeroCaption].title}
+        </h2>
 
-      {/* ==================== IMAGE COMPOSITION ==================== */}
+        <p className="mt-1 text-xs leading-relaxed text-white/85 sm:text-sm">
+          {heroCaptions[activeHeroCaption].subtitle}
+        </p>
+      </motion.div>
+    </AnimatePresence>
+  </div>
 
-      <section className="px-5 py-20 sm:px-8 lg:px-12 lg:py-32">
-        <div className="mx-auto max-w-9xl">
+  {/* Scroll indicator — bottom-right */}
+  <motion.div
+    initial={{ opacity: 0 }}
+    animate={{ opacity: 1 }}
+    transition={{ delay: 1.2, duration: 1 }}
+    className="absolute bottom-10 right-6 z-10 hidden flex-col items-center gap-2 text-white/80 sm:right-10 lg:flex"
+  >
+    <span className="text-xs uppercase tracking-wide-nav">Scroll</span>
+    <ArrowDown className="h-4 w-4 animate-bounce" />
+  </motion.div>
+</section>
+
+            {/* ==================== HOW STHERO HELPS ==================== */}
+      <section className="relative overflow-hidden px-5 py-16 sm:px-8 sm:py-20 lg:px-12 lg:py-24">
+        <div className="mx-auto max-w-7xl">
           <ScrollReveal>
-            <div className="mb-12 max-w-2xl lg:mb-16">
-              <p className="mb-3 text-sm font-medium uppercase tracking-wide-nav text-sage">
-                Thoughtfully curated
+            <div className="mx-auto mb-10 max-w-2xl text-center sm:mb-14">
+              <p className="mb-3 text-xs font-semibold uppercase tracking-[0.2em] text-sage">
+                A more thoughtful way to find home
               </p>
 
               <h2 className="font-display text-3xl font-bold leading-tight text-balance sm:text-4xl lg:text-5xl">
-                Spaces designed for living, not just staying.
+                Find your place, with a little more confidence.
               </h2>
+
+              <p className="mx-auto mt-4 max-w-xl text-sm leading-relaxed text-secondary-text sm:text-base">
+                Finding a place to live is about more than a room.
+                Discover a more personal way to find your next home.
+              </p>
             </div>
           </ScrollReveal>
 
-          <ScrollReveal delay={0.1}>
-            <div className="grid auto-rows-[200px] grid-cols-12 gap-3 sm:auto-rows-[260px] sm:gap-4 lg:auto-rows-[340px] lg:gap-5">
-              {imageComposition.map((img, index) => (
-                <div
-                  key={index}
-                  className={`group relative overflow-hidden rounded-2xl ${img.className}`}
+          <motion.div
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, amount: 0.12 }}
+            variants={{
+              hidden: {},
+              visible: {
+                transition: {
+                  staggerChildren: 0.12,
+                },
+              },
+            }}
+            className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4 lg:gap-5"
+          >
+            {[
+              {
+                number: '01',
+                title: 'Your Housing Profile',
+                label: 'START WITH YOU',
+                description:
+                  'Tell us your preferred location, budget, and the kind of accommodation you need.',
+                image:
+                  'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=700&q=80',
+                alt: 'Person researching housing options on a laptop',
+                icon: MapPin,
+              },
+              {
+                number: '02',
+                title: 'Beyond the Listing',
+                label: 'EXPLORE OPTIONS',
+                description:
+                  'Look beyond rent and location. Think about your commute, daily needs, and lifestyle.',
+                image:
+                  'https://images.unsplash.com/photo-1519608487953-e999c86e7455?auto=format&fit=crop&w=700&q=80',
+                alt: 'City skyline viewed during the evening',
+                icon: Search,
+              },
+              {
+                number: '03',
+                title: 'Get Support',
+                label: 'FEEL CONNECTED',
+                description:
+                  'Learn from people familiar with your destination and feel more prepared for your move.',
+                image:
+                  'https://images.pexels.com/photos/1181406/pexels-photo-1181406.jpeg?auto=compress&cs=tinysrgb&w=700' ,
+                alt: 'Young professionals collaborating and connecting',
+                icon: Users,
+              },
+              {
+                number: '04',
+                title: 'Visit & Move In',
+                label: 'YOUR NEXT CHAPTER',
+                description:
+                  'Explore your shortlisted options and choose a place that feels right for you.',
+                image:
+                  'https://images.pexels.com/photos/1643383/pexels-photo-1643383.jpeg?auto=compress&cs=tinysrgb&w=700',
+                alt: 'Thoughtfully furnished modern living room',
+                icon: Heart,
+              },
+            ].map((card) => {
+              const Icon = card.icon;
+
+              return (
+                <motion.article
+                  key={card.number}
+                  variants={{
+                    hidden: {
+                      opacity: 0,
+                      y: 24,
+                    },
+                    visible: {
+                      opacity: 1,
+                      y: 0,
+                      transition: {
+                        duration: 0.55,
+                        ease: [0.22, 1, 0.36, 1],
+                      },
+                    },
+                  }}
+                  whileHover={{
+                    y: -6,
+                    transition: {
+                      duration: 0.25,
+                      ease: 'easeOut',
+                    },
+                  }}
+                  className="group flex h-full flex-col overflow-hidden rounded-2xl border border-black/[0.06] bg-white shadow-sm transition-shadow duration-300 hover:shadow-xl hover:shadow-charcoal/[0.07]"
                 >
-                  <img
-                    src={img.url}
-                    alt={img.alt}
-                    loading="lazy"
-                    className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
-                  />
-                  <div className="absolute inset-0 bg-charcoal/0 transition-colors duration-500 group-hover:bg-charcoal/10" />
-                </div>
-              ))}
-            </div>
-          </ScrollReveal>
+                  {/* Image */}
+                  <div className="relative aspect-[5/3] overflow-hidden">
+                    <motion.img
+                      src={card.image}
+                      alt={card.alt}
+                      loading="lazy"
+                      className="h-full w-full object-cover"
+                      whileHover={{ scale: 1.07 }}
+                      transition={{
+                        duration: 0.6,
+                        ease: 'easeOut',
+                      }}
+                    />
+
+                    <div className="absolute inset-0 bg-gradient-to-t from-charcoal/50 via-transparent to-transparent" />
+
+                    <span className="absolute left-3 top-3 rounded-full border border-white/30 bg-white/85 px-2.5 py-1 text-[10px] font-semibold tracking-wider text-charcoal backdrop-blur-sm">
+                      {card.number}
+                    </span>
+
+                    <span className="absolute bottom-3 left-3 text-[10px] font-semibold tracking-[0.16em] text-white">
+                      {card.label}
+                    </span>
+                  </div>
+
+                  {/* Compact content */}
+                  <div className="flex flex-1 flex-col p-4 sm:p-5">
+                    <div className="mb-3 flex h-9 w-9 items-center justify-center rounded-xl bg-sage/10 text-sage transition-colors duration-300 group-hover:bg-sage group-hover:text-white">
+                      <Icon className="h-4 w-4" />
+                    </div>
+
+                    <h3 className="font-display text-lg font-bold leading-snug text-charcoal sm:text-xl">
+                      {card.title}
+                    </h3>
+
+                    <p className="mt-2 flex-1 text-sm leading-relaxed text-secondary-text">
+                      {card.description}
+                    </p>
+
+                    <button
+                      type="button"
+                      onClick={scrollToOnboarding}
+                      className="mt-5 inline-flex w-fit items-center gap-2 text-sm font-semibold text-charcoal transition-colors duration-300 hover:text-sage"
+                    >
+                      Find Your Place
+                      <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
+                    </button>
+                  </div>
+                </motion.article>
+              );
+            })}
+          </motion.div>
         </div>
       </section>
-
       {/* ==================== THE STORY: WHY STHERO ==================== */}
-
       <section className="bg-beige px-5 py-20 sm:px-8 lg:px-12 lg:py-32">
         <div className="mx-auto max-w-9xl">
           <ScrollReveal>
@@ -299,12 +476,10 @@ export default function Home() {
               <p className="mb-3 text-sm font-medium uppercase tracking-wide-nav text-sage">
                 A story that feels familiar
               </p>
-
               <h2 className="font-display text-3xl font-bold leading-tight text-balance sm:text-4xl lg:text-5xl">
                 A new job is exciting. Finding a place to live shouldn&apos;t
                 be the hard part.
               </h2>
-
               <p className="mx-auto mt-5 max-w-2xl text-base leading-relaxed text-secondary-text sm:text-lg">
                 Imagine getting your dream offer in another city. The
                 opportunity is real, but so is the challenge of finding
@@ -333,20 +508,16 @@ export default function Home() {
                           loading="lazy"
                           className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
                         />
-
                         <div className="absolute inset-0 bg-gradient-to-t from-charcoal/55 via-transparent to-transparent" />
-
                         <div className="absolute bottom-5 left-5 flex items-center gap-3 text-ivory sm:bottom-7 sm:left-7">
                           <span className="flex h-11 w-11 items-center justify-center rounded-full border border-white/40 bg-white/15 backdrop-blur-sm">
                             <Icon className="h-5 w-5" />
                           </span>
-
                           <span className="text-sm font-medium tracking-wide">
                             {step.label}
                           </span>
                         </div>
                       </div>
-
                       <span className="absolute -left-3 -top-5 font-display text-6xl font-bold text-sage/25 sm:-left-5 sm:text-8xl">
                         {step.number}
                       </span>
@@ -356,11 +527,9 @@ export default function Home() {
                       <p className="mb-3 text-sm font-medium uppercase tracking-wide-nav text-sage">
                         Chapter {step.number}
                       </p>
-
                       <h3 className="font-display text-2xl font-bold leading-tight text-balance sm:text-3xl lg:text-4xl">
                         {step.title}
                       </h3>
-
                       <p className="mt-5 text-base leading-relaxed text-secondary-text sm:text-lg">
                         {step.description}
                       </p>
@@ -412,11 +581,9 @@ export default function Home() {
           <ScrollReveal delay={0.1}>
             <div className="mt-20 rounded-3xl bg-ivory px-6 py-10 text-center sm:px-12 lg:mt-28 lg:py-14">
               <Users className="mx-auto h-8 w-8 text-sage" />
-
               <h3 className="mt-5 font-display text-2xl font-bold sm:text-3xl">
                 Because a place is more than four walls.
               </h3>
-
               <p className="mx-auto mt-4 max-w-2xl leading-relaxed text-secondary-text">
                 It&apos;s where your next chapter begins, new friendships
                 take shape, and a strange city slowly starts feeling familiar.
@@ -427,7 +594,6 @@ export default function Home() {
       </section>
 
       {/* ==================== LIFESTYLE STORY ==================== */}
-
       <section className="px-5 py-20 sm:px-8 lg:px-12 lg:py-32">
         <div className="mx-auto grid max-w-9xl grid-cols-1 items-center gap-10 lg:grid-cols-12 lg:gap-16">
           <ScrollReveal className="order-2 lg:order-1 lg:col-span-7">
@@ -449,19 +615,15 @@ export default function Home() {
               <p className="mb-3 text-sm font-medium uppercase tracking-wide-nav text-sage">
                 Why sthero
               </p>
-
               <h2 className="font-display text-3xl font-bold leading-tight text-balance sm:text-4xl lg:text-5xl">
                 Living should feel easier.
               </h2>
-
               <p className="mt-6 text-lg leading-relaxed text-secondary-text text-pretty">
                 Finding the right place shouldn&apos;t be overwhelming.
                 We&apos;re here to make the search feel more personal, more
                 human, and a little less like a chore.
               </p>
-
               <div className="mt-8 h-px w-16 bg-sage" />
-
               <p className="mt-6 text-base leading-relaxed text-secondary-text">
                 Tell us where you&apos;d like to live, what matters to you,
                 and whether you&apos;re a student or a professional.
@@ -471,47 +633,9 @@ export default function Home() {
           </ScrollReveal>
         </div>
       </section>
-
-      {/* ==================== LIFESTYLE GALLERY ==================== */}
-
-      <section className="px-5 py-20 sm:px-8 lg:px-12 lg:py-32">
-        <div className="mx-auto max-w-9xl">
-          <ScrollReveal>
-            <div className="mb-12 max-w-2xl lg:mb-16">
-              <p className="mb-3 text-sm font-medium uppercase tracking-wide-nav text-sage">
-                Gallery
-              </p>
-
-              <h2 className="font-display text-3xl font-bold leading-tight text-balance sm:text-4xl lg:text-5xl">
-                A place for every next chapter.
-              </h2>
-            </div>
-          </ScrollReveal>
-
-          <ScrollReveal delay={0.1}>
-            <div className="grid auto-rows-[180px] grid-cols-4 gap-3 sm:auto-rows-[220px] sm:gap-4 md:grid-cols-6 lg:auto-rows-[280px] lg:gap-5">
-              {galleryImages.map((img, index) => (
-                <div
-                  key={index}
-                  className={`group relative overflow-hidden rounded-xl lg:rounded-2xl ${img.className}`}
-                >
-                  <img
-                    src={img.url}
-                    alt={img.alt}
-                    loading="lazy"
-                    className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
-                  />
-
-                  <div className="absolute inset-0 bg-charcoal/0 transition-colors duration-500 group-hover:bg-charcoal/10" />
-                </div>
-              ))}
-            </div>
-          </ScrollReveal>
-        </div>
-      </section>
+          
 
       {/* ==================== USER FEEDBACK ==================== */}
-
       <section
         id="share-experience"
         className="scroll-mt-16 bg-beige px-5 py-20 sm:px-8 lg:px-12 lg:py-32"
@@ -521,23 +645,19 @@ export default function Home() {
             <p className="mb-3 text-sm font-medium uppercase tracking-wide-nav text-sage">
               Your voice matters
             </p>
-
             <h2 className="font-display text-3xl font-bold leading-tight text-balance sm:text-4xl lg:text-5xl">
               Tell us what finding a place is really like.
             </h2>
-
             <p className="mt-6 text-lg leading-relaxed text-secondary-text">
               Are you still searching? Have you finally found a place? Or
               have you already experienced the challenges of moving to a
               new city?
             </p>
-
             <p className="mt-4 leading-relaxed text-secondary-text">
               We want to hear the real stories, frustrations and ideas that
               can help us build a better living experience for students and
               working professionals.
             </p>
-
             <div className="mt-8 overflow-hidden rounded-2xl">
               <img
                 src="https://images.unsplash.com/photo-1529156069898-49953e39b3ac?auto=format&fit=crop&w=1000&q=85"
@@ -546,10 +666,8 @@ export default function Home() {
                 className="aspect-[5/3] w-full object-cover"
               />
             </div>
-
             <div className="mt-6 flex items-start gap-3">
               <MessageSquareText className="mt-1 h-5 w-5 shrink-0 text-sage" />
-
               <p className="text-sm leading-relaxed text-secondary-text">
                 Your feedback helps us understand what matters most. We
                 won&apos;t publish your written experience as a testimonial
@@ -568,17 +686,14 @@ export default function Home() {
                   <span className="flex h-16 w-16 items-center justify-center rounded-full bg-sage/10">
                     <CheckCircle2 className="h-8 w-8 text-sage" />
                   </span>
-
                   <h3 className="mt-6 font-display text-2xl font-bold sm:text-3xl">
                     Thank you for sharing.
                   </h3>
-
                   <p className="mt-3 max-w-md leading-relaxed text-secondary-text">
                     Your experience has been received. Every honest response
                     helps us understand how to make finding a place a little
                     easier.
                   </p>
-
                   <button
                     type="button"
                     onClick={() => {
@@ -597,11 +712,9 @@ export default function Home() {
                     <span className="text-sm font-medium text-sage">
                       YOUR EXPERIENCE
                     </span>
-
                     <h3 className="mt-2 font-display text-2xl font-bold sm:text-3xl">
                       Let&apos;s start with you.
                     </h3>
-
                     <p className="mt-2 text-sm leading-relaxed text-secondary-text">
                       A few quick questions. Share only what you&apos;re
                       comfortable sharing.
@@ -609,12 +722,10 @@ export default function Home() {
                   </div>
 
                   {/* Journey stage */}
-
                   <fieldset>
                     <legend className="mb-3 text-sm font-semibold">
                       Where are you in your journey?
                     </legend>
-
                     <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
                       {[
                         {
@@ -654,11 +765,9 @@ export default function Home() {
                             }
                             className="sr-only"
                           />
-
                           <span className="text-sm font-semibold">
                             {option.label}
                           </span>
-
                           <span className="mt-1 text-xs leading-relaxed text-secondary-text">
                             {option.description}
                           </span>
@@ -668,16 +777,13 @@ export default function Home() {
                   </fieldset>
 
                   {/* Challenges */}
-
                   <fieldset>
                     <legend className="text-sm font-semibold">
                       What challenges have you faced?
                     </legend>
-
                     <p className="mb-4 mt-1 text-sm text-secondary-text">
                       Select all that apply, up to 8.
                     </p>
-
                     <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                       {challengesList.map((challenge) => {
                         const checked =
@@ -701,7 +807,6 @@ export default function Home() {
                               onChange={() => toggleChallenge(challenge)}
                               className="mt-0.5 h-4 w-4 shrink-0 accent-sage"
                             />
-
                             <span className="text-sm leading-relaxed">
                               {challenge}
                             </span>
@@ -709,14 +814,12 @@ export default function Home() {
                         );
                       })}
                     </div>
-
                     <p className="mt-3 text-xs text-secondary-text">
                       {feedback.challenges.length} of 8 selected
                     </p>
                   </fieldset>
 
                   {/* City */}
-
                   <div>
                     <label
                       htmlFor="feedback-city"
@@ -727,10 +830,8 @@ export default function Home() {
                         (Optional)
                       </span>
                     </label>
-
                     <div className="relative">
                       <MapPin className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-secondary-text" />
-
                       <input
                         id="feedback-city"
                         type="text"
@@ -749,7 +850,6 @@ export default function Home() {
                   </div>
 
                   {/* Personal experience */}
-
                   <div>
                     <label
                       htmlFor="feedback-experience"
@@ -760,7 +860,6 @@ export default function Home() {
                         (Optional)
                       </span>
                     </label>
-
                     <textarea
                       id="feedback-experience"
                       value={feedback.experience}
@@ -775,14 +874,12 @@ export default function Home() {
                       placeholder="What was difficult, frustrating or different from what you expected?"
                       className="w-full resize-y rounded-xl border border-black/10 bg-white px-4 py-3.5 text-sm leading-relaxed outline-none transition focus:border-sage focus:ring-2 focus:ring-sage/15"
                     />
-
                     <p className="mt-1 text-right text-xs text-secondary-text">
                       {feedback.experience.length}/3000
                     </p>
                   </div>
 
                   {/* Suggestions */}
-
                   <div>
                     <label
                       htmlFor="feedback-suggestion"
@@ -793,7 +890,6 @@ export default function Home() {
                         (Optional)
                       </span>
                     </label>
-
                     <textarea
                       id="feedback-suggestion"
                       value={feedback.suggestion}
@@ -808,14 +904,12 @@ export default function Home() {
                       placeholder="What do you wish existed when you were looking for a place?"
                       className="w-full resize-y rounded-xl border border-black/10 bg-white px-4 py-3.5 text-sm leading-relaxed outline-none transition focus:border-sage focus:ring-2 focus:ring-sage/15"
                     />
-
                     <p className="mt-1 text-right text-xs text-secondary-text">
                       {feedback.suggestion.length}/2000
                     </p>
                   </div>
 
                   {/* Consent */}
-
                   <label className="flex cursor-pointer items-start gap-3 rounded-xl bg-beige/70 p-4">
                     <input
                       type="checkbox"
@@ -828,7 +922,6 @@ export default function Home() {
                       }
                       className="mt-1 h-4 w-4 shrink-0 accent-sage"
                     />
-
                     <span className="text-sm leading-relaxed text-secondary-text">
                       I agree that sthero may use my feedback anonymously to
                       understand accommodation challenges and improve its
@@ -839,7 +932,6 @@ export default function Home() {
                   </label>
 
                   {/* Errors */}
-
                   {feedbackError && (
                     <p
                       role="alert"
@@ -863,7 +955,6 @@ export default function Home() {
                   )}
 
                   {/* Submit */}
-
                   <button
                     type="submit"
                     disabled={feedbackStatus === 'loading'}
@@ -881,7 +972,6 @@ export default function Home() {
                       </>
                     )}
                   </button>
-
                   <p className="text-center text-xs leading-relaxed text-secondary-text">
                     No name or email is requested in this form. Please avoid
                     including sensitive personal information in your story.
@@ -893,50 +983,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ==================== ONBOARDING ==================== */}
-
-      <section
-        id="onboarding"
-        className="scroll-mt-16 bg-beige px-5 py-20 sm:px-8 lg:px-12 lg:py-32"
-      >
-        <div className="mx-auto grid max-w-9xl grid-cols-1 items-stretch gap-10 lg:grid-cols-2 lg:gap-16">
-          <ScrollReveal className="flex flex-col justify-center">
-            <div className="mb-8 aspect-[5/4] overflow-hidden rounded-2xl lg:rounded-3xl">
-              <img
-                src={onboardingImage.url}
-                alt={onboardingImage.alt}
-                loading="lazy"
-                className="h-full w-full object-cover"
-              />
-            </div>
-
-            <p className="mb-3 text-sm font-medium uppercase tracking-wide-nav text-sage">
-              Onboarding
-            </p>
-
-            <h2 className="font-display text-3xl font-bold leading-tight text-balance sm:text-4xl lg:text-5xl">
-              Let&apos;s find your place.
-            </h2>
-
-            <p className="mt-5 text-lg leading-relaxed text-secondary-text text-pretty">
-              Share a few details so we can understand what you&apos;re looking
-              for.
-            </p>
-
-            <div className="mt-6 flex items-center gap-3 text-secondary-text">
-              <div className="h-px w-12 bg-sage" />
-              <span className="text-sm">Takes less than a minute</span>
-            </div>
-          </ScrollReveal>
-
-          <ScrollReveal delay={0.15}>
-            <OnboardingForm />
-          </ScrollReveal>
-        </div>
-      </section>
-
       {/* ==================== CLOSING CTA ==================== */}
-
       <section className="relative h-[70vh] min-h-[500px] w-full overflow-hidden">
         <img
           src={closingImage.url}
@@ -944,26 +991,22 @@ export default function Home() {
           loading="lazy"
           className="absolute inset-0 h-full w-full object-cover"
         />
-
         <div className="absolute inset-0 bg-charcoal/55" />
-
         <div className="relative z-10 flex h-full flex-col items-center justify-center px-5 text-center">
           <ScrollReveal>
             <h2 className="font-display text-4xl font-extrabold leading-tight tracking-tight-hero text-ivory text-balance sm:text-5xl lg:text-6xl">
               Your next chapter starts here.
             </h2>
           </ScrollReveal>
-
           <ScrollReveal delay={0.15}>
             <button
               onClick={scrollToOnboarding}
               className="group mt-8 inline-flex items-center gap-2 rounded-full bg-ivory px-7 py-3.5 text-base font-semibold text-charcoal transition-all duration-300 hover:bg-sage hover:text-ivory"
             >
-              Get Started
+              Find Your Place
               <ArrowRight className="h-5 w-5 transition-transform duration-300 group-hover:translate-x-0.5" />
             </button>
           </ScrollReveal>
-
           <button
             onClick={scrollToFeedback}
             className="mt-5 text-sm font-medium text-ivory/85 underline decoration-ivory/40 underline-offset-4 transition-colors hover:text-white"

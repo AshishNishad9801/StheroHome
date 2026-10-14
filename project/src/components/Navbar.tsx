@@ -1,4 +1,3 @@
-
 import { useEffect, useState, useCallback } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -32,12 +31,12 @@ export default function Navbar() {
     };
   }, []);
 
-  // Close the mobile menu whenever the route changes.
+  // Close mobile menu whenever the route changes.
   useEffect(() => {
     setMobileOpen(false);
   }, [location.pathname]);
 
-  // Prevent background scrolling while the mobile menu is open.
+  // Prevent background scrolling while mobile menu is open.
   useEffect(() => {
     if (mobileOpen) {
       document.body.style.overflow = 'hidden';
@@ -50,7 +49,7 @@ export default function Navbar() {
     };
   }, [mobileOpen]);
 
-  // Navigate to the dedicated onboarding page.
+  // Navigate to the onboarding page.
   const handleGetStarted = useCallback(() => {
     setMobileOpen(false);
     navigate('/get-started');
@@ -71,15 +70,15 @@ export default function Navbar() {
           duration: 0.6,
           ease: [0.22, 1, 0.36, 1],
         }}
-        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${scrolled
-          ? 'bg-ivory/85 backdrop-blur-md border-b border-warm-border/60'
-          : 'bg-transparent'
-          }`}
+        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
+          scrolled
+            ? 'bg-ivory/90 backdrop-blur-md'
+            : 'bg-transparent'
+        }`}
       >
         <nav className="mx-auto max-w-9xl px-5 sm:px-8 lg:px-12">
           <div className="flex items-center justify-between h-16 lg:h-20">
-
-            {/* Combined brand logo and name */}
+            {/* Brand logo and name */}
             <Link
               to="/"
               className="flex items-center gap-2 shrink-0"
@@ -92,15 +91,15 @@ export default function Navbar() {
               />
 
               <span
-                className={`font-display text-2xl font-extrabold tracking-tight-hero transition-colors duration-300 ${scrolled
+                className={`font-display text-2xl font-extrabold tracking-tight-hero transition-colors duration-300 ${
+                  scrolled
                     ? 'text-charcoal hover:text-sage'
                     : 'text-ivory hover:text-ivory/80'
-                  }`}
+                }`}
               >
                 Sthero
               </span>
             </Link>
-
 
             {/* Desktop navigation links */}
             <div className="hidden md:flex items-center gap-1">
@@ -108,22 +107,24 @@ export default function Navbar() {
                 <Link
                   key={link.to}
                   to={link.to}
-                  className={`relative px-4 py-2 text-sm font-medium tracking-wide-nav transition-colors duration-300 ${isActive(link.to)
-                    ? scrolled
-                      ? 'text-charcoal'
-                      : 'text-ivory'
-                    : scrolled
-                      ? 'text-secondary-text hover:text-charcoal'
-                      : 'text-ivory/75 hover:text-ivory'
-                    }`}
+                  className={`relative px-4 py-2 text-sm font-medium tracking-wide-nav transition-colors duration-300 ${
+                    isActive(link.to)
+                      ? scrolled
+                        ? 'text-charcoal'
+                        : 'text-ivory'
+                      : scrolled
+                        ? 'text-secondary-text hover:text-charcoal'
+                        : 'text-ivory/75 hover:text-ivory'
+                  }`}
                 >
                   {link.label}
 
                   {isActive(link.to) && (
                     <motion.span
                       layoutId="nav-underline"
-                      className={`absolute left-4 right-4 bottom-1 h-px ${scrolled ? 'bg-sage' : 'bg-ivory'
-                        }`}
+                      className={`absolute left-4 right-4 bottom-1 h-px ${
+                        scrolled ? 'bg-sage' : 'bg-ivory'
+                      }`}
                       transition={{
                         type: 'spring',
                         stiffness: 380,
@@ -140,10 +141,11 @@ export default function Navbar() {
               <button
                 type="button"
                 onClick={handleGetStarted}
-                className={`group inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-sm font-medium transition-all duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-sage focus-visible:ring-offset-2 ${scrolled
-                  ? 'bg-charcoal text-ivory hover:bg-sage focus-visible:ring-offset-ivory'
-                  : 'bg-ivory/90 text-charcoal hover:bg-ivory focus-visible:ring-offset-charcoal/40'
-                  }`}
+                className={`group inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-sm font-medium transition-all duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-sage focus-visible:ring-offset-2 ${
+                  scrolled
+                    ? 'bg-charcoal text-ivory hover:bg-sage focus-visible:ring-offset-ivory'
+                    : 'bg-ivory/90 text-charcoal hover:bg-ivory focus-visible:ring-offset-charcoal/40'
+                }`}
               >
                 Find Your Place
                 <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-0.5" />
@@ -154,10 +156,11 @@ export default function Navbar() {
             <button
               type="button"
               onClick={() => setMobileOpen((value) => !value)}
-              className={`md:hidden inline-flex items-center justify-center w-10 h-10 rounded-full transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-sage ${scrolled
-                ? 'text-charcoal hover:bg-beige'
-                : 'text-ivory hover:bg-ivory/15'
-                }`}
+              className={`md:hidden inline-flex items-center justify-center w-10 h-10 rounded-full transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-sage ${
+                scrolled
+                  ? 'text-charcoal hover:bg-beige'
+                  : 'text-ivory hover:bg-ivory/15'
+              }`}
               aria-label={mobileOpen ? 'Close menu' : 'Open menu'}
               aria-expanded={mobileOpen}
               aria-controls="mobile-navigation"
@@ -170,6 +173,16 @@ export default function Navbar() {
             </button>
           </div>
         </nav>
+
+        {/* NEW: Subtle horizontal line beneath the navbar */}
+        <div
+          aria-hidden="true"
+          className={`h-px w-full transition-colors duration-500 ${
+            scrolled
+              ? 'bg-warm-border/80'
+              : 'bg-ivory/30'
+          }`}
+        />
       </motion.header>
 
       {/* Mobile navigation */}
@@ -206,10 +219,11 @@ export default function Navbar() {
                     key={link.to}
                     to={link.to}
                     onClick={() => setMobileOpen(false)}
-                    className={`block px-4 py-3 rounded-xl text-base font-medium transition-colors ${isActive(link.to)
-                      ? 'bg-beige text-charcoal'
-                      : 'text-secondary-text hover:bg-beige/60 hover:text-charcoal'
-                      }`}
+                    className={`block px-4 py-3 rounded-xl text-base font-medium transition-colors ${
+                      isActive(link.to)
+                        ? 'bg-beige text-charcoal'
+                        : 'text-secondary-text hover:bg-beige/60 hover:text-charcoal'
+                    }`}
                   >
                     {link.label}
                   </Link>

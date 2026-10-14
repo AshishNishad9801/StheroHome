@@ -1,5 +1,5 @@
 
-import { useCallback } from 'react';
+import { useCallback, useRef, type ReactNode, type RefObject } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, useReducedMotion } from 'framer-motion';
 import {
@@ -16,13 +16,10 @@ import {
   Network,
   type LucideIcon,
 } from 'lucide-react';
-
 import ScrollReveal from '@/components/ScrollReveal';
-
 import {
   aboutHeroImages,
   aboutStoryImage,
-  aboutGalleryImages,
   aboutClosingImage,
 } from '@/lib/images';
 
@@ -117,9 +114,48 @@ const teamMembers: TeamMember[] = [
   },
 ];
 
+/**
+ * The horizontal scroller is the IntersectionObserver root.
+ * Therefore, cards animate when they enter view during a horizontal swipe,
+ * rather than relying only on the page's vertical scroll position.
+ */
+function HorizontalCard({
+  children,
+  index,
+  root,
+  className = '',
+  reduceMotion,
+}: {
+  children: ReactNode;
+  index: number;
+  root: RefObject<HTMLDivElement | null>;
+  className?: string;
+  reduceMotion: boolean | null;
+}) {
+  return (
+    <motion.div
+      initial={reduceMotion ? false : { opacity: 0, x: 36, y: 8 }}
+      whileInView={{ opacity: 1, x: 0, y: 0 }}
+      viewport={{ root, once: true, amount: 0.2 }}
+      transition={{
+        duration: reduceMotion ? 0 : 0.55,
+        delay: reduceMotion ? 0 : index * 0.06,
+        ease: [0.22, 1, 0.36, 1],
+      }}
+      className={className}
+    >
+      {children}
+    </motion.div>
+  );
+}
+
 export default function About() {
   const navigate = useNavigate();
   const reduceMotion = useReducedMotion();
+
+  const missionScroller = useRef<HTMLDivElement>(null);
+  const valuesScroller = useRef<HTMLDivElement>(null);
+  const teamScroller = useRef<HTMLDivElement>(null);
 
   const handleGetStarted = useCallback(() => {
     navigate('/');
@@ -134,8 +170,7 @@ export default function About() {
 
   return (
     <main className="overflow-hidden bg-ivory text-charcoal">
-      {/* ==================== ABOUT HERO ==================== */}
-
+      {/* ABOUT HERO */}
       <section className="relative h-[76svh] min-h-[540px] max-h-[800px] w-full overflow-hidden sm:min-h-[580px]">
         <motion.div
           initial={{ scale: reduceMotion ? 1 : 1.06 }}
@@ -201,40 +236,21 @@ export default function About() {
         <div className="absolute bottom-0 left-0 h-px w-full bg-ivory/20" />
       </section>
 
-      {/* ==================== ABOUT US ==================== */}
+      {/* ABOUT US */}
 
       <section className="px-5 py-16 sm:px-8 sm:py-20 lg:px-12 lg:py-24">
         <div className="mx-auto grid max-w-7xl grid-cols-1 items-center gap-9 lg:grid-cols-12 lg:gap-14">
-          <ScrollReveal className="lg:col-span-6">
-            <div className="relative aspect-[4/3] overflow-hidden rounded-2xl sm:rounded-3xl">
-              <img
-                src={aboutStoryImage.url}
-                alt={aboutStoryImage.alt}
-                loading="lazy"
-                className="h-full w-full object-cover transition-transform duration-700 hover:scale-[1.03]"
-              />
-
-              <div className="absolute inset-0 bg-gradient-to-t from-charcoal/30 to-transparent" />
-
-              <div className="absolute bottom-4 left-4 rounded-xl border border-ivory/30 bg-charcoal/40 px-4 py-3 text-ivory backdrop-blur-md sm:bottom-6 sm:left-6">
-                <p className="text-sm font-semibold">
-                  Housing, built around people.
-                </p>
-              </div>
-            </div>
-          </ScrollReveal>
-
-          <ScrollReveal delay={0.12} className="lg:col-span-6">
-            <div>
+          <ScrollReveal delay={0.12} className="lg:col-span-12">
+            <div className="text-center">
               <p className="mb-3 text-xs font-semibold uppercase tracking-[0.2em] text-sage sm:text-sm">
                 About us
               </p>
 
-              <h2 className="font-display text-3xl font-bold leading-tight sm:text-4xl lg:text-[2.75rem]">
+              <h2 className="mx-auto max-w-3xl font-display text-3xl font-bold leading-tight sm:text-4xl lg:text-[2.75rem]">
                 Finding a home should feel more human.
               </h2>
 
-              <div className="mt-5 space-y-4 text-sm leading-7 text-secondary-text sm:mt-6 sm:text-base sm:leading-8">
+              <div className="mx-auto mt-5 max-w-3xl space-y-4 text-sm leading-7 text-secondary-text sm:mt-6 sm:text-base sm:leading-8">
                 <p>
                   sthero is an IIT Bombay-based, community-driven housing
                   platform that helps students and working professionals find
@@ -255,9 +271,9 @@ export default function About() {
                 </p>
               </div>
 
-              <div className="mt-7 h-px w-14 bg-sage" />
+              <div className="mx-auto mt-7 h-px w-14 bg-sage" />
 
-              <p className="mt-5 font-display text-base font-semibold leading-relaxed text-charcoal sm:text-lg">
+              <p className="mx-auto mt-5 max-w-3xl font-display text-base font-semibold leading-relaxed text-charcoal sm:text-lg">
                 A good place to live is about more than four walls. It is about
                 the people and possibilities around you.
               </p>
@@ -266,8 +282,8 @@ export default function About() {
         </div>
       </section>
 
-      {/* ==================== OUR MISSION ==================== */}
 
+      {/* OUR MISSION */}
       <section className="bg-beige px-5 py-16 sm:px-8 sm:py-20 lg:px-12 lg:py-24">
         <div className="mx-auto max-w-7xl">
           <ScrollReveal>
@@ -287,17 +303,23 @@ export default function About() {
             </div>
           </ScrollReveal>
 
-          <div className="grid grid-cols-1 gap-5 md:grid-cols-3 lg:gap-6">
+          <div
+            ref={missionScroller}
+            className="-mx-5 flex snap-x snap-mandatory gap-4 overflow-x-auto overscroll-x-contain px-5 pb-5 scroll-smooth [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:-mx-8 sm:px-8 md:mx-0 md:grid md:grid-cols-3 md:gap-5 md:overflow-visible md:px-0 md:pb-0 lg:gap-6"
+            aria-label="Our mission cards; swipe horizontally on mobile"
+          >
             {missions.map((mission, index) => {
               const Icon = mission.icon;
 
               return (
-                <ScrollReveal
+                <HorizontalCard
                   key={mission.title}
-                  delay={index * 0.1}
-                  className="h-full"
+                  index={index}
+                  root={missionScroller}
+                  reduceMotion={reduceMotion}
+                  className="w-[84%] min-w-[84%] snap-start md:w-auto md:min-w-0"
                 >
-                  <article className="group h-full rounded-2xl border border-warm-border bg-ivory p-6 transition-all duration-300 hover:-translate-y-1 hover:border-sage/60 hover:shadow-lg sm:rounded-3xl sm:p-7 lg:p-8">
+                  <article className="group h-full min-h-[250px] rounded-2xl border border-warm-border bg-ivory p-6 transition-all duration-300 hover:border-sage/60 hover:shadow-lg sm:rounded-3xl sm:p-7 lg:p-8">
                     <div className="mb-5 flex h-11 w-11 items-center justify-center rounded-xl border border-warm-border bg-beige transition-colors duration-300 group-hover:border-sage/40 group-hover:bg-sage/10 sm:mb-6 sm:h-12 sm:w-12">
                       <Icon
                         className="h-5 w-5 text-sage"
@@ -318,15 +340,18 @@ export default function About() {
                       {mission.description}
                     </p>
                   </article>
-                </ScrollReveal>
+                </HorizontalCard>
               );
             })}
           </div>
+
+          <p className="mt-1 text-center text-xs text-secondary-text md:hidden">
+            Swipe to explore <span aria-hidden="true">→</span>
+          </p>
         </div>
       </section>
 
-      {/* ==================== OUR VALUES ==================== */}
-
+      {/* WHAT WE BELIEVE IN */}
       <section className="px-5 py-16 sm:px-8 sm:py-20 lg:px-12 lg:py-24">
         <div className="mx-auto max-w-7xl">
           <ScrollReveal>
@@ -346,17 +371,23 @@ export default function About() {
             </div>
           </ScrollReveal>
 
-          <div className="grid grid-cols-1 gap-7 md:grid-cols-3 lg:gap-10">
+          <div
+            ref={valuesScroller}
+            className="-mx-5 flex snap-x snap-mandatory gap-5 overflow-x-auto overscroll-x-contain px-5 pb-5 scroll-smooth [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:-mx-8 sm:px-8 md:mx-0 md:grid md:grid-cols-3 md:gap-8 md:overflow-visible md:px-0 md:pb-0 lg:gap-10"
+            aria-label="Our values; swipe horizontally on mobile"
+          >
             {values.map((value, index) => {
               const Icon = value.icon;
 
               return (
-                <ScrollReveal
+                <HorizontalCard
                   key={value.title}
-                  delay={index * 0.1}
-                  className="h-full"
+                  index={index}
+                  root={valuesScroller}
+                  reduceMotion={reduceMotion}
+                  className="w-[84%] min-w-[84%] snap-start md:w-auto md:min-w-0"
                 >
-                  <article className="group h-full border-t border-warm-border pt-6 sm:pt-7">
+                  <article className="group h-full min-h-[245px] border-t border-warm-border bg-ivory/40 pt-6 sm:pt-7">
                     <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-xl border border-warm-border bg-beige transition-all duration-300 group-hover:border-sage/50 group-hover:bg-sage/10 sm:mb-6 sm:h-14 sm:w-14">
                       <Icon
                         className="h-5 w-5 text-sage sm:h-6 sm:w-6"
@@ -373,58 +404,18 @@ export default function About() {
                       {value.description}
                     </p>
                   </article>
-                </ScrollReveal>
+                </HorizontalCard>
               );
             })}
           </div>
+
+          <p className="mt-1 text-center text-xs text-secondary-text md:hidden">
+            Swipe to explore <span aria-hidden="true">→</span>
+          </p>
         </div>
       </section>
 
-      {/* ==================== VISUAL STORYTELLING GALLERY ==================== */}
-
-      <section className="bg-beige px-5 py-16 sm:px-8 sm:py-20 lg:px-12 lg:py-24">
-        <div className="mx-auto max-w-7xl">
-          <ScrollReveal>
-            <div className="mb-8 max-w-2xl sm:mb-12">
-              <p className="mb-3 text-xs font-semibold uppercase tracking-[0.2em] text-sage sm:text-sm">
-                Everyday moments
-              </p>
-
-              <h2 className="font-display text-3xl font-bold leading-tight sm:text-4xl lg:text-5xl">
-                The life around a place.
-              </h2>
-
-              <p className="mt-4 max-w-xl text-sm leading-relaxed text-secondary-text sm:mt-5 sm:text-base lg:text-lg">
-                A home is where everyday routines, shared experiences, and new
-                friendships turn an unfamiliar place into somewhere you belong.
-              </p>
-            </div>
-          </ScrollReveal>
-
-          <ScrollReveal delay={0.1}>
-            <div className="grid auto-rows-[140px] grid-cols-2 gap-3 sm:auto-rows-[190px] sm:grid-cols-4 sm:gap-4 lg:auto-rows-[250px] lg:gap-5">
-              {aboutGalleryImages.map((img, index) => (
-                <div
-                  key={`${img.url}-${index}`}
-                  className={`group relative overflow-hidden rounded-xl sm:rounded-2xl ${img.className}`}
-                >
-                  <img
-                    src={img.url}
-                    alt={img.alt}
-                    loading="lazy"
-                    className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
-                  />
-
-                  <div className="absolute inset-0 bg-charcoal/0 transition-colors duration-500 group-hover:bg-charcoal/10" />
-                </div>
-              ))}
-            </div>
-          </ScrollReveal>
-        </div>
-      </section>
-
-      {/* ==================== MEET THE TEAM ==================== */}
-
+      {/* MEET THE TEAM */}
       <section className="px-5 py-16 sm:px-8 sm:py-20 lg:px-12 lg:py-24">
         <div className="mx-auto max-w-7xl">
           <ScrollReveal>
@@ -444,17 +435,23 @@ export default function About() {
             </div>
           </ScrollReveal>
 
-          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:gap-6">
+          <div
+            ref={teamScroller}
+            className="-mx-5 flex snap-x snap-mandatory gap-4 overflow-x-auto overscroll-x-contain px-5 pb-5 scroll-smooth [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:-mx-8 sm:gap-5 sm:px-8 md:mx-0 md:grid md:grid-cols-2 md:gap-6 md:overflow-visible md:px-0 md:pb-0 lg:gap-6"
+            aria-label="Meet the team; swipe horizontally on mobile"
+          >
             {teamMembers.map((member, index) => {
               const Icon = member.icon;
 
               return (
-                <ScrollReveal
+                <HorizontalCard
                   key={member.name}
-                  delay={index * 0.08}
-                  className="h-full"
+                  index={index}
+                  root={teamScroller}
+                  reduceMotion={reduceMotion}
+                  className="w-[88%] min-w-[88%] snap-start sm:w-[78%] sm:min-w-[78%] md:w-auto md:min-w-0"
                 >
-                  <article className="group flex h-full flex-col rounded-2xl border border-warm-border bg-ivory p-5 transition-all duration-300 hover:-translate-y-1 hover:border-sage/60 hover:shadow-lg sm:rounded-3xl sm:p-7 lg:p-8">
+                  <article className="group flex h-full min-h-[300px] flex-col rounded-2xl border border-warm-border bg-ivory p-5 transition-all duration-300 hover:border-sage/60 hover:shadow-lg sm:rounded-3xl sm:p-7 lg:p-8">
                     <div className="flex items-start gap-4">
                       <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-warm-border bg-beige transition-colors duration-300 group-hover:border-sage/40 group-hover:bg-sage/10 sm:h-14 sm:w-14">
                         <Icon
@@ -505,15 +502,18 @@ export default function About() {
                       {member.responsibility}
                     </p>
                   </article>
-                </ScrollReveal>
+                </HorizontalCard>
               );
             })}
           </div>
+
+          <p className="mt-1 text-center text-xs text-secondary-text md:hidden">
+            Swipe to meet everyone <span aria-hidden="true">→</span>
+          </p>
         </div>
       </section>
 
-      {/* ==================== CLOSING CTA ==================== */}
-
+      {/* CLOSING CTA */}
       <section className="relative h-[54vh] min-h-[400px] max-h-[600px] w-full overflow-hidden">
         <img
           src={aboutClosingImage.url}

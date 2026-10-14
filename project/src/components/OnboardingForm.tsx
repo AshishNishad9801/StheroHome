@@ -34,27 +34,60 @@ import {
 } from '@/lib/formValidation';
 
 type FormStatus = 'idle' | 'submitting' | 'success';
+type OnboardingErrors = FormErrors & {
+  accommodationType?: string;
+};
+
+type AccommodationType =
+  | 'PG / Co-living'
+  | '1 RK'
+  | 'Flat'
+  | 'Shared Accommodation'
+  | 'Other';
+
+const accommodationOptions: {
+  label: string;
+  value: AccommodationType;
+}[] = [
+  { label: 'PG / Co-living', value: 'PG / Co-living' },
+  { label: '1 RK', value: '1 RK' },
+  { label: 'Flat', value: 'Flat' },
+  { label: 'Shared Accommodation', value: 'Shared Accommodation' },
+  { label: 'Other', value: 'Other' },
+];
 
 export default function OnboardingForm() {
   const [data, setData] = useState<FormData>(initialFormData);
-  const [errors, setErrors] = useState<FormErrors>({});
+
+  const [errors, setErrors] = useState<OnboardingErrors>({});
+
   const [touched, setTouched] = useState<
-    Partial<Record<keyof FormData, boolean>>
+    Partial<Record<keyof FormData | 'accommodationType', boolean>>
   >({});
+
+  const [accommodationType, setAccommodationType] =
+    useState<AccommodationType | ''>('');
+
   const [step, setStep] = useState(1);
+
   const [status, setStatus] = useState<FormStatus>('idle');
+
   const [submissionError, setSubmissionError] = useState('');
+
   const [launchEmailConsent, setLaunchEmailConsent] = useState(false);
 
   const reduceMotion = useReducedMotion();
 
   const fieldRefs = useRef<
-    Partial<Record<keyof FormData, HTMLElement | null>>
+    Partial<Record<keyof FormData | 'accommodationType', HTMLElement | null>>
   >({});
 
   const setField = useCallback(
     <K extends keyof FormData>(field: K, value: FormData[K]) => {
-      setData((prev) => ({ ...prev, [field]: value }));
+      setData((prev) => ({
+        ...prev,
+        [field]: value,
+      }));
 
       if (touched[field]) {
         setErrors((prev) => {
@@ -66,16 +99,20 @@ export default function OnboardingForm() {
 
       setSubmissionError('');
     },
-    [touched]
+    [touched],
   );
 
   const handleBlur = useCallback(
     (field: keyof FormData) => {
-      setTouched((prev) => ({ ...prev, [field]: true }));
+      setTouched((prev) => ({
+        ...prev,
+        [field]: true,
+      }));
 
       setErrors((prev) => {
         const next = { ...prev };
-        const error = validateStep(step, { ...data })[field];
+
+        const error = validateStep(step, data)[field];
 
         if (error) {
           next[field] = error;
@@ -86,23 +123,26 @@ export default function OnboardingForm() {
         return next;
       });
     },
-    [data, step]
+    [data, step],
   );
 
   const focusFirstError = useCallback(
-    (stepErrors: FormErrors) => {
-      const fields: (keyof FormData)[] =
+    (stepErrors: OnboardingErrors) => {
+      const fieldOrder: (keyof FormData | 'accommodationType')[] =
         step === 1
-          ? ['fullName', 'email', 'phone', 'city']
-          : ['background', 'college', 'company'];
+          ? ['fullName', 'email', 'phone', 'college', 'city']
+          : ['background', 'company', 'accommodationType'];
 
-      for (const field of fields) {
-        if (stepErrors[field]) {
+      for (const field of fieldOrder) {
+        if (
+          stepErrors[field as keyof FormData] ||
+          (field === 'accommodationType' && !accommodationType)
+        ) {
           const el = fieldRefs.current[field];
 
           if (el) {
             const input = el.querySelector(
-              'input, select, button[role="radio"], button[type="button"]'
+              'input, select, button[role="radio"], button[type="button"]',
             ) as HTMLElement | null;
 
             (input ?? el).focus();
@@ -111,24 +151,35 @@ export default function OnboardingForm() {
         }
       }
     },
-    [step]
+    [step, accommodationType],
   );
 
+  // STEP 1 VALIDATION
   const handleContinue = useCallback(() => {
-    const stepErrors = validateStep(1, data);
+    const stepErrors: OnboardingErrors = {
+      ...validateStep(1, data),
+    };
+
+    // College is collected in Step 1.
+    if (!data.college?.trim()) {
+      stepErrors.college =
+        'Please enter your college or university name.';
+    }
+
     const step1Fields: (keyof FormData)[] = [
       'fullName',
       'email',
       'phone',
+      'college',
       'city',
     ];
 
     setTouched((prev) => {
       const next = { ...prev };
 
-      for (const field of step1Fields) {
+      step1Fields.forEach((field) => {
         next[field] = true;
-      }
+      });
 
       return next;
     });
@@ -152,25 +203,38 @@ export default function OnboardingForm() {
     setSubmissionError('');
   }, [status]);
 
+  // STEP 2 SUBMISSION
   const handleSubmit = useCallback(async () => {
     if (status === 'submitting') return;
 
-    const allErrors = validateAll(data);
-    const step2Fields: (keyof FormData)[] = [
-      'background',
-      'college',
-      'company',
-    ];
+    const allErrors: OnboardingErrors = {
+      ...validateAll(data),
+    };
 
-    setTouched((prev) => {
-      const next = { ...prev };
+    // College is collected in Step 1 and reused for students.
+    if (!data.college?.trim()) {
+      allErrors.college =
+        'Please enter your college or university name.';
+    }
 
-      for (const field of step2Fields) {
-        next[field] = true;
-      }
+    // Company is required for working professionals
+    // and people who are both students and working.
+    if (needsCompany(data.background) && !data.company?.trim()) {
+      allErrors.company = 'Please enter your company name.';
+    }
 
-      return next;
-    });
+    if (!accommodationType) {
+      allErrors.accommodationType =
+        'Please choose the type of accommodation you need.';
+    }
+
+    setTouched((prev) => ({
+      ...prev,
+      background: true,
+      college: true,
+      company: true,
+      accommodationType: true,
+    }));
 
     setErrors(allErrors);
     setSubmissionError('');
@@ -188,17 +252,29 @@ export default function OnboardingForm() {
         .from('early_access_registrations')
         .insert({
           full_name: data.fullName.trim(),
+
           email: data.email.trim().toLowerCase(),
+
           phone: data.phone.trim(),
+
           city: data.city.trim(),
+
           locality: data.locality?.trim() || null,
 
           background: data.background,
+
           college: data.college?.trim() || null,
-          company: data.company?.trim() || null,
+
+          company: needsCompany(data.background)
+            ? data.company?.trim() || null
+            : null,
+
+          accommodation_type: accommodationType,
 
           gender_preference: data.genderPreference || null,
+
           budget: data.budget || null,
+
           move_date: data.moveDate || null,
 
           launch_email_consent: launchEmailConsent,
@@ -207,16 +283,17 @@ export default function OnboardingForm() {
       if (error) {
         if (error.code === '23505') {
           setSubmissionError(
-            'This email address is already registered. Try another email address.'
+            'This email address is already registered. Try another email address.',
           );
         } else if (error.code === '42501' || error.code === '401') {
           setSubmissionError(
-            'We could not submit your details because of a permissions issue. Please try again later.'
+            'We could not submit your details because of a permissions issue. Please try again later.',
           );
         } else {
           console.error('Supabase registration error:', error);
+
           setSubmissionError(
-            'We could not save your details right now. Please check your connection and try again.'
+            'We could not save your details right now. Please check your connection and try again.',
           );
         }
 
@@ -224,30 +301,43 @@ export default function OnboardingForm() {
         return;
       }
 
-      // Show success only after Supabase confirms the insert.
       setStatus('success');
     } catch (error) {
       console.error('Registration submission failed:', error);
 
       setSubmissionError(
-        'Something went wrong while submitting your details. Please try again.'
+        'Something went wrong while submitting your details. Please try again.',
       );
 
       setStatus('idle');
     }
-  }, [data, focusFirstError, launchEmailConsent, status]);
+  }, [
+    data,
+    accommodationType,
+    focusFirstError,
+    launchEmailConsent,
+    status,
+  ]);
 
   const handleStartAgain = useCallback(() => {
     setData(initialFormData);
+
     setErrors({});
+
     setTouched({});
+
+    setAccommodationType('');
+
     setStep(1);
+
     setStatus('idle');
+
     setSubmissionError('');
+
     setLaunchEmailConsent(false);
   }, []);
 
-  // Success screen
+  // SUCCESS SCREEN
   if (status === 'success') {
     return (
       <SuccessScreen
@@ -288,6 +378,7 @@ export default function OnboardingForm() {
       </div>
 
       <AnimatePresence mode="wait">
+        {/* STEP 1 */}
         {step === 1 ? (
           <motion.div
             key="step1"
@@ -300,7 +391,7 @@ export default function OnboardingForm() {
             }}
             className="space-y-5 flex-1"
           >
-            {/* Section: About you */}
+            {/* About you */}
             <div>
               <p className="text-xs font-semibold tracking-wide-nav text-sage uppercase mb-4">
                 About you
@@ -340,7 +431,9 @@ export default function OnboardingForm() {
                       setField('email', e.target.value)
                     }
                     onBlur={() => handleBlur('email')}
-                    error={touched.email ? errors.email : undefined}
+                    error={
+                      touched.email ? errors.email : undefined
+                    }
                     placeholder="you@example.com"
                     autoComplete="email"
                   />
@@ -359,17 +452,40 @@ export default function OnboardingForm() {
                       setField('phone', e.target.value)
                     }
                     onBlur={() => handleBlur('phone')}
-                    error={touched.phone ? errors.phone : undefined}
+                    error={
+                      touched.phone ? errors.phone : undefined
+                    }
                     placeholder="98765 43210"
                     prefix="+91"
                     autoComplete="tel"
                     hint="10-digit Indian mobile number"
                   />
                 </div>
+
+                {/* College is asked in Step 1 */}
+                <div
+                  ref={(el) => {
+                    fieldRefs.current.college = el;
+                  }}
+                >
+                  <TextField
+                    label="College or university name"
+                    value={data.college ?? ''}
+                    onChange={(e) =>
+                      setField('college', e.target.value)
+                    }
+                    onBlur={() => handleBlur('college')}
+                    error={
+                      touched.college ? errors.college : undefined
+                    }
+                    placeholder="e.g. Delhi University, IIT Bombay"
+                    hint="If you're a student, we'll use this answer later—no need to enter it twice."
+                  />
+                </div>
               </div>
             </div>
 
-            {/* Section: Where you want to live */}
+            {/* Location */}
             <div className="pt-2">
               <p className="text-xs font-semibold tracking-wide-nav text-sage uppercase mb-4">
                 Where you want to live
@@ -384,9 +500,13 @@ export default function OnboardingForm() {
                   <CitySelector
                     label="Which city are you looking for?"
                     value={data.city}
-                    onChange={(value) => setField('city', value)}
+                    onChange={(value) =>
+                      setField('city', value)
+                    }
                     cities={indianCities}
-                    error={touched.city ? errors.city : undefined}
+                    error={
+                      touched.city ? errors.city : undefined
+                    }
                     required
                   />
                 </div>
@@ -394,16 +514,17 @@ export default function OnboardingForm() {
                 <TextField
                   label="Preferred locality or area"
                   optional
-                  value={data.locality}
+                  value={data.locality ?? ''}
                   onChange={(e) =>
                     setField('locality', e.target.value)
                   }
-                  placeholder="e.g. Koramangala, Bandra West..."
+                  placeholder="e.g. Koramangala, Bandra West"
                 />
               </div>
             </div>
           </motion.div>
         ) : (
+          /* STEP 2 */
           <motion.div
             key="step2"
             initial={reduceMotion ? false : { opacity: 0, x: 20 }}
@@ -415,7 +536,7 @@ export default function OnboardingForm() {
             }}
             className="space-y-5 flex-1"
           >
-            {/* Section: Your background */}
+            {/* Background */}
             <div>
               <p className="text-xs font-semibold tracking-wide-nav text-sage uppercase mb-4">
                 Your background
@@ -433,6 +554,19 @@ export default function OnboardingForm() {
                     value={data.background}
                     onChange={(value) => {
                       setField('background', value);
+
+                      if (!needsCompany(value)) {
+                        setField(
+                          'company',
+                          '' as FormData['company'],
+                        );
+
+                        setErrors((prev) => {
+                          const next = { ...prev };
+                          delete next.company;
+                          return next;
+                        });
+                      }
                     }}
                     error={
                       touched.background
@@ -443,55 +577,27 @@ export default function OnboardingForm() {
                   />
                 </div>
 
-                {/* Conditional college field */}
-                <AnimatePresence mode="wait">
-                  {needsCollege(data.background) && (
-                    <motion.div
-                      key="college"
-                      initial={
-                        reduceMotion
-                          ? false
-                          : { opacity: 0, height: 0 }
-                      }
-                      animate={{ opacity: 1, height: 'auto' }}
-                      exit={
-                        reduceMotion
-                          ? undefined
-                          : { opacity: 0, height: 0 }
-                      }
-                      transition={{
-                        duration: 0.3,
-                        ease: [0.22, 1, 0.36, 1],
-                      }}
-                      className="overflow-hidden"
-                    >
-                      <div
-                        ref={(el) => {
-                          fieldRefs.current.college = el;
-                        }}
-                      >
-                        <TextField
-                          label="College or university name"
-                          value={data.college}
-                          onChange={(e) =>
-                            setField('college', e.target.value)
-                          }
-                          onBlur={() => handleBlur('college')}
-                          error={
-                            touched.college
-                              ? errors.college
-                              : undefined
-                          }
-                          placeholder="e.g. Delhi University, IIT Bombay..."
-                        />
-                      </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
+                {/* Show existing college; never ask again */}
+                {needsCollege(data.background) && (
+                  <div className="rounded-xl border border-warm-border bg-beige/40 p-4">
+                    <p className="text-sm font-medium text-charcoal">
+                      College or university
+                    </p>
 
-                {/* Conditional company field */}
-                <AnimatePresence mode="wait">
-                  {needsCompany(data.background) && (
+                    <p className="mt-1 text-sm text-secondary-text">
+                      {data.college?.trim() ||
+                        'Your college was not entered in Step 1.'}
+                    </p>
+
+                    <p className="mt-2 text-xs text-secondary-text">
+                      You don't need to enter it again.
+                    </p>
+                  </div>
+                )}
+
+                {/* Company for working or student + working */}
+                {needsCompany(data.background) && (
+                  <AnimatePresence mode="wait">
                     <motion.div
                       key="company"
                       initial={
@@ -499,7 +605,10 @@ export default function OnboardingForm() {
                           ? false
                           : { opacity: 0, height: 0 }
                       }
-                      animate={{ opacity: 1, height: 'auto' }}
+                      animate={{
+                        opacity: 1,
+                        height: 'auto',
+                      }}
                       exit={
                         reduceMotion
                           ? undefined
@@ -518,7 +627,7 @@ export default function OnboardingForm() {
                       >
                         <TextField
                           label="Company name"
-                          value={data.company}
+                          value={data.company ?? ''}
                           onChange={(e) =>
                             setField('company', e.target.value)
                           }
@@ -528,16 +637,56 @@ export default function OnboardingForm() {
                               ? errors.company
                               : undefined
                           }
-                          placeholder="e.g. Infosys, Tata Consultancy Services..."
+                          placeholder="e.g. Infosys, Tata Consultancy Services"
                         />
                       </div>
                     </motion.div>
-                  )}
-                </AnimatePresence>
+                  </AnimatePresence>
+                )}
               </div>
             </div>
 
-            {/* Section: Your preferences */}
+            {/* Accommodation type */}
+            <div>
+              <p className="text-xs font-semibold tracking-wide-nav text-sage uppercase mb-4">
+                Accommodation preferences
+              </p>
+
+              <div
+                ref={(el) => {
+                  fieldRefs.current.accommodationType = el;
+                }}
+                className="space-y-2"
+              >
+                <OptionGroup<AccommodationType>
+                  label="What kind of accommodation are you looking for?"
+                  options={accommodationOptions}
+                  value={accommodationType}
+                  onChange={(value) => {
+                    setAccommodationType(value);
+
+                    setErrors((prev) => {
+                      const next = { ...prev };
+                      delete next.accommodationType;
+                      return next;
+                    });
+
+                    setTouched((prev) => ({
+                      ...prev,
+                      accommodationType: true,
+                    }));
+                  }}
+                  error={
+                    touched.accommodationType
+                      ? errors.accommodationType
+                      : undefined
+                  }
+                  columns={2}
+                />
+              </div>
+            </div>
+
+            {/* Other preferences */}
             <div className="pt-2">
               <p className="text-xs font-semibold tracking-wide-nav text-sage uppercase mb-4">
                 Your preferences
@@ -579,7 +728,7 @@ export default function OnboardingForm() {
               </div>
             </div>
 
-            {/* Optional launch email consent */}
+            {/* Launch email consent */}
             <div className="pt-2">
               <label className="flex items-start gap-3 rounded-xl border border-warm-border p-4 cursor-pointer hover:bg-beige/40 transition-colors">
                 <input
@@ -614,7 +763,9 @@ export default function OnboardingForm() {
         <motion.div
           role="alert"
           aria-live="polite"
-          initial={reduceMotion ? false : { opacity: 0, y: 8 }}
+          initial={
+            reduceMotion ? false : { opacity: 0, y: 8 }
+          }
           animate={{ opacity: 1, y: 0 }}
           className="mt-5 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
         >
@@ -672,6 +823,7 @@ export default function OnboardingForm() {
   );
 }
 
+// SUCCESS SCREEN
 function SuccessScreen({
   onReset,
   reduceMotion,
@@ -689,7 +841,11 @@ function SuccessScreen({
       className="bg-ivory rounded-2xl lg:rounded-3xl border border-warm-border p-8 sm:p-10 lg:p-14 h-full flex flex-col items-center justify-center text-center min-h-[400px]"
     >
       <motion.div
-        initial={reduceMotion ? false : { scale: 0, opacity: 0 }}
+        initial={
+          reduceMotion
+            ? false
+            : { scale: 0, opacity: 0 }
+        }
         animate={{ scale: 1, opacity: 1 }}
         transition={{
           duration: 0.6,
@@ -707,7 +863,11 @@ function SuccessScreen({
       </motion.div>
 
       <motion.h3
-        initial={reduceMotion ? false : { opacity: 0, y: 15 }}
+        initial={
+          reduceMotion
+            ? false
+            : { opacity: 0, y: 15 }
+        }
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, delay: 0.3 }}
         className="font-display text-2xl sm:text-3xl font-bold text-charcoal leading-tight text-balance"
@@ -716,7 +876,11 @@ function SuccessScreen({
       </motion.h3>
 
       <motion.p
-        initial={reduceMotion ? false : { opacity: 0, y: 15 }}
+        initial={
+          reduceMotion
+            ? false
+            : { opacity: 0, y: 15 }
+        }
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, delay: 0.4 }}
         className="mt-4 text-base text-secondary-text leading-relaxed max-w-sm text-pretty"
@@ -726,7 +890,11 @@ function SuccessScreen({
       </motion.p>
 
       <motion.p
-        initial={reduceMotion ? false : { opacity: 0 }}
+        initial={
+          reduceMotion
+            ? false
+            : { opacity: 0 }
+        }
         animate={{ opacity: 1 }}
         transition={{ duration: 0.5, delay: 0.5 }}
         className="mt-4 text-xs text-secondary-text/70 max-w-xs"
@@ -734,6 +902,7 @@ function SuccessScreen({
         {launchEmailConsent ? (
           <span className="inline-flex items-start justify-center gap-2">
             <Mail className="h-4 w-4 shrink-0 mt-0.5" />
+
             Your details have been saved. You've opted in to receive
             an email when sthero launches.
           </span>
@@ -743,7 +912,11 @@ function SuccessScreen({
       </motion.p>
 
       <motion.div
-        initial={reduceMotion ? false : { opacity: 0, y: 15 }}
+        initial={
+          reduceMotion
+            ? false
+            : { opacity: 0, y: 15 }
+        }
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, delay: 0.55 }}
         className="mt-8 flex flex-col sm:flex-row items-center gap-3"

@@ -235,7 +235,7 @@ export default function Navbar() {
                   onClick={handleGetStarted}
                   className="mt-3 w-full inline-flex items-center justify-center gap-2 rounded-full bg-charcoal px-5 py-3 text-base font-medium text-ivory hover:bg-sage transition-colors"
                 >
-                  Get Started
+                  Find your place
                   <ArrowRight className="h-4 w-4" />
                 </button>
               </div>

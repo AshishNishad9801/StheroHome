@@ -548,7 +548,7 @@ export default function About() {
                 onClick={handleGetStarted}
                 className="group mt-6 inline-flex items-center gap-2.5 rounded-full bg-ivory px-6 py-3 text-sm font-semibold text-charcoal transition-colors duration-300 hover:bg-sage hover:text-ivory focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ivory focus-visible:ring-offset-4 focus-visible:ring-offset-charcoal sm:mt-7 sm:px-7 sm:py-3.5 sm:text-base"
               >
-                Get Started
+                Find your place
                 <ArrowRight
                   className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1"
                   aria-hidden="true"

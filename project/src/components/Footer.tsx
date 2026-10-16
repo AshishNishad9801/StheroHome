@@ -60,7 +60,7 @@ export default function Footer() {
                   onClick={handleGetStarted}
                   className="inline-flex items-center gap-1.5 text-ivory/70 hover:text-ivory transition-colors duration-300"
                 >
-                  Find Your Place
+                  Share Your Housing Needs
                   <ArrowRight className="h-3.5 w-3.5" />
                 </button>
               </li>
@@ -78,7 +78,7 @@ export default function Footer() {
               onClick={handleGetStarted}
               className="mt-5 inline-flex items-center gap-2 rounded-full bg-ivory/10 hover:bg-ivory/20 border border-ivory/20 px-5 py-2.5 text-sm font-medium text-ivory transition-all duration-300"
             >
-              Find Your Place
+              Share Your Housing Needs
               <ArrowRight className="h-4 w-4" />
             </button>
           </div>

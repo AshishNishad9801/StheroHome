@@ -147,7 +147,7 @@ export default function Navbar() {
                     : 'bg-ivory/90 text-charcoal hover:bg-ivory focus-visible:ring-offset-charcoal/40'
                 }`}
               >
-                Find Your Place
+                Share Your Housing Needs
                 <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-0.5" />
               </button>
             </div>
@@ -235,7 +235,7 @@ export default function Navbar() {
                   onClick={handleGetStarted}
                   className="mt-3 w-full inline-flex items-center justify-center gap-2 rounded-full bg-charcoal px-5 py-3 text-base font-medium text-ivory hover:bg-sage transition-colors"
                 >
-                  Find your place
+                  Share Your Housing Needs
                   <ArrowRight className="h-4 w-4" />
                 </button>
               </div>

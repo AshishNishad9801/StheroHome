@@ -19,7 +19,6 @@ import {
 import ScrollReveal from '@/components/ScrollReveal';
 import {
   aboutHeroImages,
-  aboutStoryImage,
   aboutClosingImage,
 } from '@/lib/images';
 
@@ -59,27 +58,6 @@ const missions: Mission[] = [
   },
 ];
 
-const values: Mission[] = [
-  {
-    icon: Users,
-    title: 'People First',
-    description:
-      'Every housing journey starts with a person. We put individual needs, preferences, and circumstances at the heart of finding a place to live.',
-  },
-  {
-    icon: Handshake,
-    title: 'Trust Through Community',
-    description:
-      'Finding a home is easier when you have people you can relate to. We bring housing seekers closer to relevant communities and real connections.',
-  },
-  {
-    icon: Compass,
-    title: 'A Better Housing Ecosystem',
-    description:
-      'We want residents, students, working professionals, and property owners to discover opportunities and grow together.',
-  },
-];
-
 const teamMembers: TeamMember[] = [
   {
     name: 'Manoj Singh',
@@ -116,8 +94,7 @@ const teamMembers: TeamMember[] = [
 
 /**
  * The horizontal scroller is the IntersectionObserver root.
- * Therefore, cards animate when they enter view during a horizontal swipe,
- * rather than relying only on the page's vertical scroll position.
+ * Cards animate when they enter view during a horizontal swipe.
  */
 function HorizontalCard({
   children,
@@ -154,7 +131,6 @@ export default function About() {
   const reduceMotion = useReducedMotion();
 
   const missionScroller = useRef<HTMLDivElement>(null);
-  const valuesScroller = useRef<HTMLDivElement>(null);
   const teamScroller = useRef<HTMLDivElement>(null);
 
   const handleGetStarted = useCallback(() => {
@@ -170,13 +146,15 @@ export default function About() {
 
   return (
     <main className="overflow-hidden bg-ivory text-charcoal">
+
       {/* ABOUT HERO */}
-      <section className="relative h-[76svh] min-h-[540px] max-h-[800px] w-full overflow-hidden sm:min-h-[580px]">
+      <section className="group relative isolate min-h-[760px] w-full overflow-hidden bg-charcoal sm:min-h-[780px] lg:min-h-[820px]">
+        {/* Background Image */}
         <motion.div
-          initial={{ scale: reduceMotion ? 1 : 1.06 }}
+          initial={{ scale: reduceMotion ? 1 : 1.08 }}
           animate={{ scale: 1 }}
           transition={{
-            duration: reduceMotion ? 0 : 7,
+            duration: reduceMotion ? 0 : 8,
             ease: 'easeOut',
           }}
           className="absolute inset-0"
@@ -184,108 +162,139 @@ export default function About() {
           <img
             src={aboutHeroImages[0].url}
             alt={aboutHeroImages[0].alt}
-            className="h-full w-full object-cover"
             fetchPriority="high"
+            className="h-full w-full object-cover object-center"
           />
         </motion.div>
 
-        <div className="absolute inset-0 bg-gradient-to-t from-charcoal/80 via-charcoal/35 to-charcoal/25" />
+        {/* Layered Image Treatment */}
+        <div className="absolute inset-0 bg-charcoal/25" />
+        <div className="absolute inset-0 bg-gradient-to-b from-charcoal/55 via-charcoal/45 to-charcoal/90" />
+        <div className="absolute inset-0 bg-gradient-to-r from-charcoal/50 via-transparent to-transparent" />
 
-        <div className="relative z-10 flex h-full flex-col items-center justify-center px-5 pb-10 pt-24 text-center sm:px-8 sm:pb-14 sm:pt-28 lg:pt-32">
+        {/* Decorative Detail */}
+        <div
+          aria-hidden="true"
+          className="absolute left-5 top-0 h-20 w-px bg-ivory/30 sm:left-10 sm:h-28 lg:left-16"
+        />
+
+        {/* Main Content */}
+        <div className="relative z-10 mx-auto flex min-h-[760px] max-w-7xl flex-col items-center justify-center px-5 py-20 text-center sm:min-h-[780px] sm:px-8 sm:py-24 lg:min-h-[820px] lg:px-12">
           <motion.div
-            initial={{ opacity: 0, y: reduceMotion ? 0 : 20 }}
+            initial={{ opacity: 0, y: reduceMotion ? 0 : 24 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{
-              duration: reduceMotion ? 0 : 0.8,
+              duration: reduceMotion ? 0 : 0.85,
               delay: reduceMotion ? 0 : 0.15,
               ease: [0.22, 1, 0.36, 1],
             }}
-            className="max-w-4xl"
+            className="mx-auto w-full max-w-5xl"
           >
-            <p className="mb-5 text-[10px] font-semibold uppercase tracking-[0.2em] text-ivory/85 sm:mb-6 sm:text-xs sm:tracking-[0.24em]">
-              A community-driven housing platform
-            </p>
+            {/* Eyebrow */}
+            <div className="mb-7 flex items-center justify-center gap-3 sm:mb-9">
+              <span
+                aria-hidden="true"
+                className="h-px w-7 bg-ivory/65 sm:w-10"
+              />
 
-            <h1 className="font-display text-3xl font-extrabold leading-[1.12] tracking-tight sm:text-5xl lg:text-6xl xl:text-7xl">
-              More than a place to stay.
-              <span className="mt-2 block font-medium italic text-ivory/85">
-                A place to belong.
+              <p className="text-[10px] font-semibold uppercase tracking-[0.28em] text-ivory/85 sm:text-xs sm:tracking-[0.32em]">
+                The story behind sthero
+              </p>
+
+              <span
+                aria-hidden="true"
+                className="h-px w-7 bg-ivory/65 sm:w-10"
+              />
+            </div>
+
+            {/* Heading */}
+            <h1 className="mx-auto max-w-4xl font-display text-4xl font-bold leading-[1.08] tracking-tight text-ivory sm:text-5xl md:text-6xl lg:text-7xl">
+              Finding a home
+              <span className="mt-1 block font-medium italic text-ivory/75 sm:mt-2">
+                should feel more human.
               </span>
             </h1>
 
-            <p className="mx-auto mt-5 max-w-xl text-sm leading-relaxed text-ivory/90 sm:mt-6 sm:text-base lg:text-lg">
-              sthero helps students and working professionals find suitable
-              housing and discover the communities that make a new place feel
-              like home.
-            </p>
+            {/* Accent */}
+            <div className="mx-auto mt-7 flex items-center justify-center gap-2 sm:mt-9">
+              <span className="h-1 w-1 rounded-full bg-ivory/60" />
+              <span className="h-px w-12 bg-ivory/70 sm:w-16" />
+              <span className="h-1 w-1 rounded-full bg-ivory/60" />
+            </div>
 
-            <button
-              type="button"
-              onClick={handleGetStarted}
-              className="group mt-7 inline-flex items-center gap-2.5 rounded-full bg-ivory px-6 py-3 text-sm font-semibold text-charcoal transition-colors duration-300 hover:bg-sage hover:text-ivory focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ivory focus-visible:ring-offset-4 focus-visible:ring-offset-charcoal sm:mt-8 sm:px-7 sm:py-3.5 sm:text-base"
-            >
-              Find your place
-              <ArrowRight
-                className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1"
-                aria-hidden="true"
-              />
-            </button>
-          </motion.div>
-        </div>
-
-        <div className="absolute bottom-0 left-0 h-px w-full bg-ivory/20" />
-      </section>
-
-      {/* ABOUT US */}
-
-      <section className="px-5 py-16 sm:px-8 sm:py-20 lg:px-12 lg:py-24">
-        <div className="mx-auto grid max-w-7xl grid-cols-1 items-center gap-9 lg:grid-cols-12 lg:gap-14">
-          <ScrollReveal delay={0.12} className="lg:col-span-12">
-            <div className="text-center">
-              <p className="mb-3 text-xs font-semibold uppercase tracking-[0.2em] text-sage sm:text-sm">
-                About us
+            {/* Story Copy */}
+            <div className="mx-auto mt-7 max-w-3xl space-y-4 text-sm leading-7 text-ivory/85 sm:mt-9 sm:space-y-5 sm:text-base sm:leading-8 lg:text-[17px]">
+              <p>
+                sthero is an IIT Bombay-based, community-driven housing
+                platform helping students and working professionals find
+                PGs, rooms, and flats that fit their budget, location,
+                and preferences.
               </p>
 
-              <h2 className="mx-auto max-w-3xl font-display text-3xl font-bold leading-tight sm:text-4xl lg:text-[2.75rem]">
-                Finding a home should feel more human.
-              </h2>
+              <p>
+                Because finding a place is only the beginning. We help
+                people discover communities through college alumni,
+                colleagues, and residents, making it easier to feel
+                connected in a new place.
+              </p>
 
-              <div className="mx-auto mt-5 max-w-3xl space-y-4 text-sm leading-7 text-secondary-text sm:mt-6 sm:text-base sm:leading-8">
-                <p>
-                  sthero is an IIT Bombay-based, community-driven housing
-                  platform that helps students and working professionals find
-                  suitable PGs, rooms, and flats based on their budget,
-                  location, and preferences.
+              <p>
+                We are building a better housing experience for seekers
+                and property owners, bringing relevant people and housing
+                opportunities closer together.
+              </p>
+            </div>
+
+            {/* Community Stats */}
+            <div className="mx-auto mt-9 flex max-w-xl items-center justify-center sm:mt-11">
+              <div className="flex-1 px-4 py-1 sm:px-8">
+                <p className="font-display text-3xl font-semibold tracking-tight text-ivory sm:text-4xl">
+                  30<span className="text-ivory/65">+</span>
                 </p>
-
-                <p>
-                  We also help housing seekers discover relevant communities,
-                  including college alumni, colleagues, and residents, so they
-                  can build meaningful connections around where they live.
-                </p>
-
-                <p>
-                  With a growing network across 30+ colleges and 900+ students
-                  and working professionals, sthero helps property owners reach
-                  relevant housing seekers.
+                <p className="mt-2 text-[9px] font-medium uppercase tracking-[0.18em] text-ivory/70 sm:text-[10px] sm:tracking-[0.22em]">
+                  Colleges
                 </p>
               </div>
 
-              <div className="mx-auto mt-7 h-px w-14 bg-sage" />
+              <div
+                aria-hidden="true"
+                className="h-12 w-px bg-ivory/30 sm:h-14"
+              />
 
-              <p className="mx-auto mt-5 max-w-3xl font-display text-base font-semibold leading-relaxed text-charcoal sm:text-lg">
-                A good place to live is about more than four walls. It is about
-                the people and possibilities around you.
-              </p>
+              <div className="flex-1 px-4 py-1 sm:px-8">
+                <p className="font-display text-3xl font-semibold tracking-tight text-ivory sm:text-4xl">
+                  2k<span className="text-ivory/65">+</span>
+                </p>
+                <p className="mt-2 text-[9px] font-medium uppercase tracking-[0.18em] text-ivory/70 sm:text-[10px] sm:tracking-[0.22em]">
+                  Community members
+                </p>
+              </div>
             </div>
-          </ScrollReveal>
+
+            {/* Closing Statement */}
+            <p className="mx-auto mt-8 max-w-2xl font-display text-base font-medium italic leading-relaxed text-ivory sm:mt-10 sm:text-lg lg:text-xl">
+              “A good place to live is about more than four walls. It is
+              about the people and possibilities around you.”
+            </p>
+          </motion.div>
         </div>
+
+        {/* Bottom Edge */}
+        <div
+          aria-hidden="true"
+          className="absolute bottom-0 left-0 h-px w-full bg-gradient-to-r from-transparent via-ivory/45 to-transparent"
+        />
       </section>
 
+      {/* OUR MISSION — SOFT SAGE BACKGROUND */}
+      <section className="relative border-t border-[#dce5d3] bg-[#edf2e7] px-5 py-16 sm:px-8 sm:py-20 lg:px-12 lg:py-24">
+        {/* Subtle Decorative Accents */}
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute right-0 top-0 h-64 w-64 rounded-full bg-[#dce8d2]/35 blur-3xl"
+        />
 
-      {/* OUR MISSION */}
-      <section className="bg-beige px-5 py-16 sm:px-8 sm:py-20 lg:px-12 lg:py-24">
-        <div className="mx-auto max-w-7xl">
+        <div className="relative mx-auto max-w-7xl">
           <ScrollReveal>
             <div className="mx-auto mb-10 max-w-3xl text-center sm:mb-14">
               <p className="mb-3 text-xs font-semibold uppercase tracking-[0.2em] text-sage sm:text-sm">
@@ -297,8 +306,9 @@ export default function About() {
               </h2>
 
               <p className="mx-auto mt-4 max-w-2xl text-sm leading-relaxed text-secondary-text sm:mt-5 sm:text-base lg:text-lg">
-                We are building a more connected housing experience, where
-                people come first and communities make all the difference.
+                We are building a more connected housing experience,
+                where people come first and communities make all the
+                difference.
               </p>
             </div>
           </ScrollReveal>
@@ -319,8 +329,8 @@ export default function About() {
                   reduceMotion={reduceMotion}
                   className="w-[84%] min-w-[84%] snap-start md:w-auto md:min-w-0"
                 >
-                  <article className="group h-full min-h-[250px] rounded-2xl border border-warm-border bg-ivory p-6 transition-all duration-300 hover:border-sage/60 hover:shadow-lg sm:rounded-3xl sm:p-7 lg:p-8">
-                    <div className="mb-5 flex h-11 w-11 items-center justify-center rounded-xl border border-warm-border bg-beige transition-colors duration-300 group-hover:border-sage/40 group-hover:bg-sage/10 sm:mb-6 sm:h-12 sm:w-12">
+                  <article className="group h-full min-h-[250px] rounded-2xl border border-[#e6e9df] bg-ivory p-6 transition-all duration-300 hover:border-sage/60 hover:shadow-lg sm:rounded-3xl sm:p-7 lg:p-8">
+                    <div className="mb-5 flex h-11 w-11 items-center justify-center rounded-xl border border-warm-border bg-[#f0f3e9] transition-colors duration-300 group-hover:border-sage/40 group-hover:bg-sage/10 sm:mb-6 sm:h-12 sm:w-12">
                       <Icon
                         className="h-5 w-5 text-sage"
                         strokeWidth={1.7}
@@ -351,73 +361,15 @@ export default function About() {
         </div>
       </section>
 
-      {/* WHAT WE BELIEVE IN */}
-      <section className="px-5 py-16 sm:px-8 sm:py-20 lg:px-12 lg:py-24">
-        <div className="mx-auto max-w-7xl">
-          <ScrollReveal>
-            <div className="mb-10 max-w-2xl sm:mb-14">
-              <p className="mb-3 text-xs font-semibold uppercase tracking-[0.2em] text-sage sm:text-sm">
-                What guides us
-              </p>
+      {/* MEET THE TEAM — LIGHTER GREEN CONTRAST */}
+      <section className="relative border-t border-[#e4e9dc] bg-[#f6f8f2] px-5 py-16 sm:px-8 sm:py-20 lg:px-12 lg:py-24">
+        {/* Soft Background Accent */}
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute bottom-0 left-0 h-72 w-72 rounded-full bg-[#e5eddd]/45 blur-3xl"
+        />
 
-              <h2 className="font-display text-3xl font-bold leading-tight sm:text-4xl lg:text-5xl">
-                What we believe in.
-              </h2>
-
-              <p className="mt-4 max-w-xl text-sm leading-relaxed text-secondary-text sm:mt-5 sm:text-base lg:text-lg">
-                The principles behind every connection, every housing search,
-                and every step towards a better living experience.
-              </p>
-            </div>
-          </ScrollReveal>
-
-          <div
-            ref={valuesScroller}
-            className="-mx-5 flex snap-x snap-mandatory gap-5 overflow-x-auto overscroll-x-contain px-5 pb-5 scroll-smooth [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:-mx-8 sm:px-8 md:mx-0 md:grid md:grid-cols-3 md:gap-8 md:overflow-visible md:px-0 md:pb-0 lg:gap-10"
-            aria-label="Our values; swipe horizontally on mobile"
-          >
-            {values.map((value, index) => {
-              const Icon = value.icon;
-
-              return (
-                <HorizontalCard
-                  key={value.title}
-                  index={index}
-                  root={valuesScroller}
-                  reduceMotion={reduceMotion}
-                  className="w-[84%] min-w-[84%] snap-start md:w-auto md:min-w-0"
-                >
-                  <article className="group h-full min-h-[245px] border-t border-warm-border bg-ivory/40 pt-6 sm:pt-7">
-                    <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-xl border border-warm-border bg-beige transition-all duration-300 group-hover:border-sage/50 group-hover:bg-sage/10 sm:mb-6 sm:h-14 sm:w-14">
-                      <Icon
-                        className="h-5 w-5 text-sage sm:h-6 sm:w-6"
-                        strokeWidth={1.5}
-                        aria-hidden="true"
-                      />
-                    </div>
-
-                    <h3 className="font-display text-xl font-semibold sm:text-2xl">
-                      {value.title}
-                    </h3>
-
-                    <p className="mt-3 text-sm leading-7 text-secondary-text sm:mt-4 sm:text-base">
-                      {value.description}
-                    </p>
-                  </article>
-                </HorizontalCard>
-              );
-            })}
-          </div>
-
-          <p className="mt-1 text-center text-xs text-secondary-text md:hidden">
-            Swipe to explore <span aria-hidden="true">→</span>
-          </p>
-        </div>
-      </section>
-
-      {/* MEET THE TEAM */}
-      <section className="px-5 py-16 sm:px-8 sm:py-20 lg:px-12 lg:py-24">
-        <div className="mx-auto max-w-7xl">
+        <div className="relative mx-auto max-w-7xl">
           <ScrollReveal>
             <div className="mx-auto mb-10 max-w-3xl text-center sm:mb-14">
               <p className="mb-3 text-xs font-semibold uppercase tracking-[0.2em] text-sage sm:text-sm">
@@ -429,8 +381,8 @@ export default function About() {
               </h2>
 
               <p className="mx-auto mt-4 max-w-2xl text-sm leading-relaxed text-secondary-text sm:mt-5 sm:text-base lg:text-lg">
-                Different strengths, one shared vision: making the housing
-                experience more connected, trustworthy, and human.
+                Different strengths, one shared vision: making the
+                housing experience more connected, trustworthy, and human.
               </p>
             </div>
           </ScrollReveal>
@@ -451,9 +403,9 @@ export default function About() {
                   reduceMotion={reduceMotion}
                   className="w-[88%] min-w-[88%] snap-start sm:w-[78%] sm:min-w-[78%] md:w-auto md:min-w-0"
                 >
-                  <article className="group flex h-full min-h-[300px] flex-col rounded-2xl border border-warm-border bg-ivory p-5 transition-all duration-300 hover:border-sage/60 hover:shadow-lg sm:rounded-3xl sm:p-7 lg:p-8">
+                  <article className="group flex h-full min-h-[300px] flex-col rounded-2xl border border-[#e6e9df] bg-ivory p-5 transition-all duration-300 hover:border-sage/60 hover:shadow-lg sm:rounded-3xl sm:p-7 lg:p-8">
                     <div className="flex items-start gap-4">
-                      <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-warm-border bg-beige transition-colors duration-300 group-hover:border-sage/40 group-hover:bg-sage/10 sm:h-14 sm:w-14">
+                      <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-warm-border bg-[#f0f3e9] transition-colors duration-300 group-hover:border-sage/40 group-hover:bg-sage/10 sm:h-14 sm:w-14">
                         <Icon
                           className="h-5 w-5 text-sage sm:h-6 sm:w-6"
                           strokeWidth={1.5}
@@ -539,8 +491,8 @@ export default function About() {
               </h2>
 
               <p className="mx-auto mt-4 max-w-xl text-sm leading-relaxed text-ivory/85 sm:mt-5 sm:text-base lg:text-lg">
-                Discover housing that fits your life and communities that make
-                a new city feel a little more like home.
+                Discover housing that fits your life and communities
+                that make a new city feel a little more like home.
               </p>
 
               <button
@@ -548,7 +500,7 @@ export default function About() {
                 onClick={handleGetStarted}
                 className="group mt-6 inline-flex items-center gap-2.5 rounded-full bg-ivory px-6 py-3 text-sm font-semibold text-charcoal transition-colors duration-300 hover:bg-sage hover:text-ivory focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ivory focus-visible:ring-offset-4 focus-visible:ring-offset-charcoal sm:mt-7 sm:px-7 sm:py-3.5 sm:text-base"
               >
-                Find your place
+                Share Your Housing Needs
                 <ArrowRight
                   className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1"
                   aria-hidden="true"

@@ -99,7 +99,7 @@ const journeySteps = [
     eyebrow: 'LOCAL KNOWLEDGE',
     title: 'Get insights from people who know.',
     description:
-      'Learn from relevant alumni, people from your region or others familiar with the neighbourhood, where connections are available.',
+      'Get practical insights and advices from alumni, people from your region and residents who are familiar with the property and neighbourhood.',
     image: journeyImage3,
     alt: 'Friends connecting and sharing experiences',
     icon: Users,
@@ -470,17 +470,7 @@ export default function Home() {
               </motion.button>
             </div>
 
-            <div className="mt-5 flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-xs text-white/85 sm:text-sm">
-              <span className="inline-flex items-center gap-2">
-                <BedDouble className="h-4 w-4" />
-                Turnkey Serviced Residences
-              </span>
-              <span className="inline-flex items-center gap-2">
-                <Building2 className="h-4 w-4" />
-                Co-Living Residences
-              </span>
-
-            </div>
+            
           </motion.div>
         </div>
 

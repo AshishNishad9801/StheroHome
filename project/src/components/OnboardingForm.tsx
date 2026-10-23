@@ -1,4 +1,5 @@
-import { useRef, useState, useCallback } from 'react';
+
+import { useRef, useState, useCallback, useEffect } from 'react';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import {
   ArrowRight,
@@ -6,8 +7,6 @@ import {
   Check,
   Loader2,
   Home,
-  RotateCcw,
-  Mail,
 } from 'lucide-react';
 
 import TextField from '@/components/form/TextField';
@@ -27,16 +26,12 @@ import {
   backgroundOptions,
   genderOptions,
   budgetOptions,
-  needsCollege,
   needsCompany,
   validateStep,
   validateAll,
 } from '@/lib/formValidation';
 
 type FormStatus = 'idle' | 'submitting' | 'success';
-type OnboardingErrors = FormErrors & {
-  accommodationType?: string;
-};
 
 type AccommodationType =
   | 'PG / Co-living'
@@ -44,6 +39,10 @@ type AccommodationType =
   | 'Flat'
   | 'Shared Accommodation'
   | 'Other';
+
+type OnboardingErrors = FormErrors & {
+  accommodationType?: string;
+};
 
 const accommodationOptions: {
   label: string;
@@ -58,29 +57,40 @@ const accommodationOptions: {
 
 export default function OnboardingForm() {
   const [data, setData] = useState<FormData>(initialFormData);
-
   const [errors, setErrors] = useState<OnboardingErrors>({});
-
   const [touched, setTouched] = useState<
     Partial<Record<keyof FormData | 'accommodationType', boolean>>
   >({});
-
   const [accommodationType, setAccommodationType] =
     useState<AccommodationType | ''>('');
-
   const [step, setStep] = useState(1);
-
   const [status, setStatus] = useState<FormStatus>('idle');
-
   const [submissionError, setSubmissionError] = useState('');
-
   const [launchEmailConsent, setLaunchEmailConsent] = useState(false);
 
   const reduceMotion = useReducedMotion();
 
+  const successScreenRef = useRef<HTMLDivElement>(null);
+
   const fieldRefs = useRef<
     Partial<Record<keyof FormData | 'accommodationType', HTMLElement | null>>
   >({});
+
+  // Automatically bring the confirmation screen into view on mobile.
+  useEffect(() => {
+    if (status !== 'success') return;
+
+    const frame = window.requestAnimationFrame(() => {
+      if (window.innerWidth < 640) {
+        successScreenRef.current?.scrollIntoView({
+          behavior: reduceMotion ? 'auto' : 'smooth',
+          block: 'start',
+        });
+      }
+    });
+
+    return () => window.cancelAnimationFrame(frame);
+  }, [status, reduceMotion]);
 
   const setField = useCallback(
     <K extends keyof FormData>(field: K, value: FormData[K]) => {
@@ -111,7 +121,6 @@ export default function OnboardingForm() {
 
       setErrors((prev) => {
         const next = { ...prev };
-
         const error = validateStep(step, data)[field];
 
         if (error) {
@@ -160,7 +169,6 @@ export default function OnboardingForm() {
       ...validateStep(1, data),
     };
 
-    // College is collected in Step 1.
     if (!data.college?.trim()) {
       stepErrors.college =
         'Please enter your college or university name.';
@@ -211,14 +219,11 @@ export default function OnboardingForm() {
       ...validateAll(data),
     };
 
-    // College is collected in Step 1 and reused for students.
     if (!data.college?.trim()) {
       allErrors.college =
         'Please enter your college or university name.';
     }
 
-    // Company is required for working professionals
-    // and people who are both students and working.
     if (needsCompany(data.background) && !data.company?.trim()) {
       allErrors.company = 'Please enter your company name.';
     }
@@ -252,31 +257,19 @@ export default function OnboardingForm() {
         .from('early_access_registrations')
         .insert({
           full_name: data.fullName.trim(),
-
           email: data.email.trim().toLowerCase(),
-
           phone: data.phone.trim(),
-
           city: data.city.trim(),
-
           locality: data.locality?.trim() || null,
-
           background: data.background,
-
           college: data.college?.trim() || null,
-
           company: needsCompany(data.background)
             ? data.company?.trim() || null
             : null,
-
           accommodation_type: accommodationType,
-
           gender_preference: data.genderPreference || null,
-
           budget: data.budget || null,
-
           move_date: data.moveDate || null,
-
           launch_email_consent: launchEmailConsent,
         });
 
@@ -285,7 +278,10 @@ export default function OnboardingForm() {
           setSubmissionError(
             'This email address is already registered. Try another email address.',
           );
-        } else if (error.code === '42501' || error.code === '401') {
+        } else if (
+          error.code === '42501' ||
+          error.code === '401'
+        ) {
           setSubmissionError(
             'We could not submit your details because of a permissions issue. Please try again later.',
           );
@@ -301,6 +297,7 @@ export default function OnboardingForm() {
         return;
       }
 
+      // Only show confirmation after a successful database insert.
       setStatus('success');
     } catch (error) {
       console.error('Registration submission failed:', error);
@@ -319,58 +316,39 @@ export default function OnboardingForm() {
     status,
   ]);
 
-  const handleStartAgain = useCallback(() => {
-    setData(initialFormData);
-
-    setErrors({});
-
-    setTouched({});
-
-    setAccommodationType('');
-
-    setStep(1);
-
-    setStatus('idle');
-
-    setSubmissionError('');
-
-    setLaunchEmailConsent(false);
-  }, []);
+  const isSubmitting = status === 'submitting';
 
   // SUCCESS SCREEN
   if (status === 'success') {
     return (
       <SuccessScreen
-        onReset={handleStartAgain}
+        screenRef={successScreenRef}
         reduceMotion={reduceMotion}
-        launchEmailConsent={launchEmailConsent}
       />
     );
   }
 
-  const isSubmitting = status === 'submitting';
-
   return (
-    <div className="bg-ivory rounded-2xl lg:rounded-3xl border border-warm-border p-6 sm:p-8 lg:p-10 h-full flex flex-col">
+    <div className="flex h-full flex-col rounded-2xl border border-warm-border bg-ivory p-6 sm:rounded-3xl sm:p-8 lg:p-10">
       {/* Progress indicator */}
       <div className="mb-8">
-        <div className="flex items-center justify-between mb-3">
+        <div className="mb-3 flex items-center justify-between">
           <h3 className="font-display text-lg font-semibold text-charcoal">
             {step === 1
               ? 'About you & location'
-              : 'Background & preferences'}
+              : 'Housing preferences'}
           </h3>
 
-          <span className="text-xs font-medium tracking-wide-nav text-sage uppercase">
+          <span className="text-xs font-medium uppercase tracking-wide-nav text-sage">
             Step {step} of 2
           </span>
         </div>
 
         <div className="flex items-center gap-2">
-          <div className="flex-1 h-1 rounded-full bg-sage" />
+          <div className="h-1 flex-1 rounded-full bg-sage" />
 
           <div
-            className={`flex-1 h-1 rounded-full transition-colors duration-500 ${
+            className={`h-1 flex-1 rounded-full transition-colors duration-500 ${
               step === 2 ? 'bg-sage' : 'bg-warm-border'
             }`}
           />
@@ -389,11 +367,11 @@ export default function OnboardingForm() {
               duration: 0.35,
               ease: [0.22, 1, 0.36, 1],
             }}
-            className="space-y-5 flex-1"
+            className="flex-1 space-y-5"
           >
             {/* About you */}
             <div>
-              <p className="text-xs font-semibold tracking-wide-nav text-sage uppercase mb-4">
+              <p className="mb-4 text-xs font-semibold uppercase tracking-wide-nav text-sage">
                 About you
               </p>
 
@@ -431,9 +409,7 @@ export default function OnboardingForm() {
                       setField('email', e.target.value)
                     }
                     onBlur={() => handleBlur('email')}
-                    error={
-                      touched.email ? errors.email : undefined
-                    }
+                    error={touched.email ? errors.email : undefined}
                     placeholder="you@example.com"
                     autoComplete="email"
                   />
@@ -452,17 +428,13 @@ export default function OnboardingForm() {
                       setField('phone', e.target.value)
                     }
                     onBlur={() => handleBlur('phone')}
-                    error={
-                      touched.phone ? errors.phone : undefined
-                    }
+                    error={touched.phone ? errors.phone : undefined}
                     placeholder="98765 43210"
                     prefix="+91"
                     autoComplete="tel"
-                    hint="10-digit Indian mobile number"
                   />
                 </div>
 
-                {/* College is asked in Step 1 */}
                 <div
                   ref={(el) => {
                     fieldRefs.current.college = el;
@@ -479,7 +451,6 @@ export default function OnboardingForm() {
                       touched.college ? errors.college : undefined
                     }
                     placeholder="e.g. Delhi University, IIT Bombay"
-                    hint="If you're a student, we'll use this answer later—no need to enter it twice."
                   />
                 </div>
               </div>
@@ -487,7 +458,7 @@ export default function OnboardingForm() {
 
             {/* Location */}
             <div className="pt-2">
-              <p className="text-xs font-semibold tracking-wide-nav text-sage uppercase mb-4">
+              <p className="mb-4 text-xs font-semibold uppercase tracking-wide-nav text-sage">
                 Where you want to live
               </p>
 
@@ -500,13 +471,9 @@ export default function OnboardingForm() {
                   <CitySelector
                     label="Which city are you looking for?"
                     value={data.city}
-                    onChange={(value) =>
-                      setField('city', value)
-                    }
+                    onChange={(value) => setField('city', value)}
                     cities={indianCities}
-                    error={
-                      touched.city ? errors.city : undefined
-                    }
+                    error={touched.city ? errors.city : undefined}
                     required
                   />
                 </div>
@@ -534,223 +501,174 @@ export default function OnboardingForm() {
               duration: 0.35,
               ease: [0.22, 1, 0.36, 1],
             }}
-            className="space-y-5 flex-1"
+            className="flex-1 space-y-5"
           >
             {/* Background */}
-            <div>
-              <p className="text-xs font-semibold tracking-wide-nav text-sage uppercase mb-4">
-                Your background
-              </p>
-
-              <div className="space-y-4">
-                <div
-                  ref={(el) => {
-                    fieldRefs.current.background = el;
-                  }}
-                >
-                  <OptionGroup<BackgroundType>
-                    label="What best describes you?"
-                    options={backgroundOptions}
-                    value={data.background}
-                    onChange={(value) => {
-                      setField('background', value);
-
-                      if (!needsCompany(value)) {
-                        setField(
-                          'company',
-                          '' as FormData['company'],
-                        );
-
-                        setErrors((prev) => {
-                          const next = { ...prev };
-                          delete next.company;
-                          return next;
-                        });
-                      }
-                    }}
-                    error={
-                      touched.background
-                        ? errors.background
-                        : undefined
-                    }
-                    columns={2}
-                  />
-                </div>
-
-                {/* Show existing college; never ask again */}
-                {needsCollege(data.background) && (
-                  <div className="rounded-xl border border-warm-border bg-beige/40 p-4">
-                    <p className="text-sm font-medium text-charcoal">
-                      College or university
-                    </p>
-
-                    <p className="mt-1 text-sm text-secondary-text">
-                      {data.college?.trim() ||
-                        'Your college was not entered in Step 1.'}
-                    </p>
-
-                    <p className="mt-2 text-xs text-secondary-text">
-                      You don't need to enter it again.
-                    </p>
-                  </div>
-                )}
-
-                {/* Company for working or student + working */}
-                {needsCompany(data.background) && (
-                  <AnimatePresence mode="wait">
-                    <motion.div
-                      key="company"
-                      initial={
-                        reduceMotion
-                          ? false
-                          : { opacity: 0, height: 0 }
-                      }
-                      animate={{
-                        opacity: 1,
-                        height: 'auto',
-                      }}
-                      exit={
-                        reduceMotion
-                          ? undefined
-                          : { opacity: 0, height: 0 }
-                      }
-                      transition={{
-                        duration: 0.3,
-                        ease: [0.22, 1, 0.36, 1],
-                      }}
-                      className="overflow-hidden"
-                    >
-                      <div
-                        ref={(el) => {
-                          fieldRefs.current.company = el;
-                        }}
-                      >
-                        <TextField
-                          label="Company name"
-                          value={data.company ?? ''}
-                          onChange={(e) =>
-                            setField('company', e.target.value)
-                          }
-                          onBlur={() => handleBlur('company')}
-                          error={
-                            touched.company
-                              ? errors.company
-                              : undefined
-                          }
-                          placeholder="e.g. Infosys, Tata Consultancy Services"
-                        />
-                      </div>
-                    </motion.div>
-                  </AnimatePresence>
-                )}
-              </div>
-            </div>
-
-            {/* Accommodation type */}
-            <div>
-              <p className="text-xs font-semibold tracking-wide-nav text-sage uppercase mb-4">
-                Accommodation preferences
-              </p>
-
+            <div className="space-y-4">
               <div
                 ref={(el) => {
-                  fieldRefs.current.accommodationType = el;
+                  fieldRefs.current.background = el;
                 }}
-                className="space-y-2"
               >
-                <OptionGroup<AccommodationType>
-                  label="What kind of accommodation are you looking for?"
-                  options={accommodationOptions}
-                  value={accommodationType}
+                <OptionGroup<BackgroundType>
+                  label="What best describes you?"
+                  options={backgroundOptions}
+                  value={data.background}
                   onChange={(value) => {
-                    setAccommodationType(value);
+                    setField('background', value);
 
-                    setErrors((prev) => {
-                      const next = { ...prev };
-                      delete next.accommodationType;
-                      return next;
-                    });
+                    if (!needsCompany(value)) {
+                      setField(
+                        'company',
+                        '' as FormData['company'],
+                      );
 
-                    setTouched((prev) => ({
-                      ...prev,
-                      accommodationType: true,
-                    }));
+                      setErrors((prev) => {
+                        const next = { ...prev };
+                        delete next.company;
+                        return next;
+                      });
+                    }
                   }}
                   error={
-                    touched.accommodationType
-                      ? errors.accommodationType
+                    touched.background
+                      ? errors.background
                       : undefined
                   }
                   columns={2}
                 />
               </div>
+
+              {/* Company for working professionals */}
+              {needsCompany(data.background) && (
+                <AnimatePresence mode="wait">
+                  <motion.div
+                    key="company"
+                    initial={
+                      reduceMotion
+                        ? false
+                        : { opacity: 0, height: 0 }
+                    }
+                    animate={{ opacity: 1, height: 'auto' }}
+                    exit={
+                      reduceMotion
+                        ? undefined
+                        : { opacity: 0, height: 0 }
+                    }
+                    transition={{
+                      duration: 0.3,
+                      ease: [0.22, 1, 0.36, 1],
+                    }}
+                    className="overflow-hidden"
+                  >
+                    <div
+                      ref={(el) => {
+                        fieldRefs.current.company = el;
+                      }}
+                    >
+                      <TextField
+                        label="Company name"
+                        value={data.company ?? ''}
+                        onChange={(e) =>
+                          setField('company', e.target.value)
+                        }
+                        onBlur={() => handleBlur('company')}
+                        error={
+                          touched.company
+                            ? errors.company
+                            : undefined
+                        }
+                        placeholder="e.g. Infosys, Tata Consultancy Services"
+                      />
+                    </div>
+                  </motion.div>
+                </AnimatePresence>
+              )}
+            </div>
+
+            {/* Accommodation type */}
+            <div
+              ref={(el) => {
+                fieldRefs.current.accommodationType = el;
+              }}
+              className="space-y-2"
+            >
+              <OptionGroup<AccommodationType>
+                label="What kind of accommodation are you looking for?"
+                options={accommodationOptions}
+                value={accommodationType}
+                onChange={(value) => {
+                  setAccommodationType(value);
+
+                  setErrors((prev) => {
+                    const next = { ...prev };
+                    delete next.accommodationType;
+                    return next;
+                  });
+
+                  setTouched((prev) => ({
+                    ...prev,
+                    accommodationType: true,
+                  }));
+                }}
+                error={
+                  touched.accommodationType
+                    ? errors.accommodationType
+                    : undefined
+                }
+                columns={2}
+              />
             </div>
 
             {/* Other preferences */}
-            <div className="pt-2">
-              <p className="text-xs font-semibold tracking-wide-nav text-sage uppercase mb-4">
-                Your preferences
-              </p>
+            <div className="space-y-4 pt-2">
+              <OptionGroup<GenderPreference>
+                label="Preferred accommodation gender"
+                options={genderOptions}
+                value={data.genderPreference}
+                onChange={(value) =>
+                  setField('genderPreference', value)
+                }
+                optional
+                columns={3}
+              />
 
-              <div className="space-y-4">
-                <OptionGroup<GenderPreference>
-                  label="Preferred accommodation gender"
-                  options={genderOptions}
-                  value={data.genderPreference}
-                  onChange={(value) =>
-                    setField('genderPreference', value)
-                  }
-                  optional
-                  columns={3}
-                />
+              <SelectField
+                label="What's your monthly budget"
+                value={data.budget}
+                onChange={(value) =>
+                  setField('budget', value as BudgetRange)
+                }
+                options={budgetOptions}
+                optional
+                placeholder="Select a budget range"
+              />
 
-                <SelectField
-                  label="Expected monthly budget"
-                  value={data.budget}
-                  onChange={(value) =>
-                    setField('budget', value as BudgetRange)
-                  }
-                  options={budgetOptions}
-                  optional
-                  placeholder="Select a budget range"
-                />
+              <TextField
+                label="When are you planning to move?"
+                optional
+                type="date"
+                value={data.moveDate}
+                onChange={(e) =>
+                  setField('moveDate', e.target.value)
+                }
+                placeholder="Select a date"
+              />
 
-                <TextField
-                  label="When are you planning to move?"
-                  optional
-                  type="date"
-                  value={data.moveDate}
-                  onChange={(e) =>
-                    setField('moveDate', e.target.value)
-                  }
-                  placeholder="Select a date"
-                />
-              </div>
-            </div>
-
-            {/* Launch email consent */}
-            <div className="pt-2">
-              <label className="flex items-start gap-3 rounded-xl border border-warm-border p-4 cursor-pointer hover:bg-beige/40 transition-colors">
+              {/* Launch email consent */}
+              <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-warm-border p-4">
                 <input
                   type="checkbox"
                   checked={launchEmailConsent}
                   onChange={(e) =>
                     setLaunchEmailConsent(e.target.checked)
                   }
-                  disabled={isSubmitting}
-                  className="mt-1 h-4 w-4 shrink-0 accent-sage cursor-pointer"
+                  className="mt-1 h-4 w-4 shrink-0 accent-[#64775a]"
                 />
 
-                <span className="text-sm text-secondary-text leading-relaxed">
-                  <span className="font-medium text-charcoal">
-                    Email me when sthero launches
-                  </span>
-
-                  <span className="block mt-1 text-xs">
-                    Get an email with a link to our website when it is
-                    ready. This is optional, and you can register
-                    without opting in.
-                  </span>
+                <span className="text-sm leading-relaxed text-secondary-text">
+                  Keep me updated about the sthero launch and
+                  important early-access updates.
                 </span>
               </label>
             </div>
@@ -763,9 +681,7 @@ export default function OnboardingForm() {
         <motion.div
           role="alert"
           aria-live="polite"
-          initial={
-            reduceMotion ? false : { opacity: 0, y: 8 }
-          }
+          initial={reduceMotion ? false : { opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
           className="mt-5 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
         >
@@ -774,13 +690,13 @@ export default function OnboardingForm() {
       )}
 
       {/* Navigation buttons */}
-      <div className="mt-8 pt-6 border-t border-warm-border flex items-center gap-3">
+      <div className="mt-8 flex items-center gap-3 border-t border-warm-border pt-6">
         {step === 2 && (
           <button
             type="button"
             onClick={handleBack}
             disabled={isSubmitting}
-            className="inline-flex items-center gap-2 rounded-full border border-warm-border px-5 py-3 text-sm font-medium text-secondary-text hover:bg-beige/60 hover:text-charcoal transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus-visible:ring-2 focus-visible:ring-sage/30"
+            className="inline-flex items-center gap-2 rounded-full border border-warm-border px-5 py-3 text-sm font-medium text-secondary-text transition-all duration-200 hover:bg-beige/60 hover:text-charcoal focus:outline-none focus-visible:ring-2 focus-visible:ring-sage/30 disabled:cursor-not-allowed disabled:opacity-50"
           >
             <ArrowLeft className="h-4 w-4" />
             Back
@@ -791,10 +707,9 @@ export default function OnboardingForm() {
           <button
             type="button"
             onClick={handleContinue}
-            className="group ml-auto inline-flex items-center gap-2 rounded-full bg-charcoal px-6 py-3 text-sm font-semibold text-ivory hover:bg-sage transition-all duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-sage focus-visible:ring-offset-2 focus-visible:ring-offset-ivory"
+            className="group ml-auto inline-flex items-center gap-2 rounded-full bg-charcoal px-6 py-3 text-sm font-semibold text-ivory transition-all duration-300 hover:bg-sage focus:outline-none focus-visible:ring-2 focus-visible:ring-sage focus-visible:ring-offset-2 focus-visible:ring-offset-ivory"
           >
             Continue
-
             <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-0.5" />
           </button>
         ) : (
@@ -802,7 +717,7 @@ export default function OnboardingForm() {
             type="button"
             onClick={handleSubmit}
             disabled={isSubmitting}
-            className="group ml-auto inline-flex items-center gap-2 rounded-full bg-charcoal px-6 py-3 text-sm font-semibold text-ivory hover:bg-sage transition-all duration-300 disabled:opacity-70 disabled:cursor-wait focus:outline-none focus-visible:ring-2 focus-visible:ring-sage focus-visible:ring-offset-2 focus-visible:ring-offset-ivory"
+            className="group ml-auto inline-flex items-center gap-2 rounded-full bg-charcoal px-6 py-3 text-sm font-semibold text-ivory transition-all duration-300 hover:bg-sage focus:outline-none focus-visible:ring-2 focus-visible:ring-sage focus-visible:ring-offset-2 focus-visible:ring-offset-ivory disabled:cursor-wait disabled:opacity-70"
           >
             {isSubmitting ? (
               <>
@@ -812,7 +727,6 @@ export default function OnboardingForm() {
             ) : (
               <>
                 Submit
-
                 <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-0.5" />
               </>
             )}
@@ -823,120 +737,118 @@ export default function OnboardingForm() {
   );
 }
 
+type SuccessScreenProps = {
+  screenRef: React.RefObject<HTMLDivElement>;
+  reduceMotion: boolean | null;
+};
+
 // SUCCESS SCREEN
 function SuccessScreen({
-  onReset,
+  screenRef,
   reduceMotion,
-  launchEmailConsent,
-}: {
-  onReset: () => void;
-  reduceMotion: boolean | null;
-  launchEmailConsent: boolean;
-}) {
+}: SuccessScreenProps) {
   return (
     <motion.div
-      initial={reduceMotion ? false : { opacity: 0 }}
-      animate={{ opacity: 1 }}
+      ref={screenRef}
+      initial={reduceMotion ? false : { opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
-      className="bg-ivory rounded-2xl lg:rounded-3xl border border-warm-border p-8 sm:p-10 lg:p-14 h-full flex flex-col items-center justify-center text-center min-h-[400px]"
+      role="status"
+      aria-live="polite"
+      className="flex min-h-[440px] scroll-mt-6 flex-col items-center justify-center rounded-2xl border border-warm-border bg-ivory p-7 text-center sm:rounded-3xl sm:p-10 lg:min-h-[520px] lg:p-14"
     >
+      {/* Application received status */}
       <motion.div
         initial={
-          reduceMotion
-            ? false
-            : { scale: 0, opacity: 0 }
+          reduceMotion ? false : { scale: 0.75, opacity: 0 }
         }
         animate={{ scale: 1, opacity: 1 }}
         transition={{
-          duration: 0.6,
-          delay: 0.15,
+          duration: 0.55,
+          delay: 0.1,
           type: 'spring',
           stiffness: 200,
-          damping: 15,
+          damping: 16,
         }}
-        className="w-16 h-16 rounded-full bg-sage/12 flex items-center justify-center mb-6"
+        className="mb-7 flex flex-col items-center"
       >
-        <Check
-          className="h-8 w-8 text-sage"
-          strokeWidth={2.5}
-        />
+        <div className="mb-4 flex h-[72px] w-[72px] items-center justify-center rounded-full border border-sage/20 bg-sage/10">
+          <Check
+            className="h-9 w-9 text-sage"
+            strokeWidth={2.5}
+          />
+        </div>
+
+        <span className="inline-flex items-center gap-2 rounded-full border border-sage/20 bg-sage/10 px-4 py-2 text-[10px] font-bold uppercase tracking-[0.18em] text-sage sm:text-xs">
+          <span className="h-1.5 w-1.5 rounded-full bg-sage" />
+          APPLICATION RECEIVED
+        </span>
       </motion.div>
 
-      <motion.h3
-        initial={
-          reduceMotion
-            ? false
-            : { opacity: 0, y: 15 }
-        }
+      {/* Main heading */}
+      <motion.h2
+        initial={reduceMotion ? false : { opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, delay: 0.3 }}
-        className="font-display text-2xl sm:text-3xl font-bold text-charcoal leading-tight text-balance"
+        transition={{ duration: 0.45, delay: 0.2 }}
+        className="max-w-md font-display text-3xl font-semibold leading-tight tracking-[-0.035em] text-charcoal text-balance sm:text-4xl"
       >
-        You're one step closer to finding your place.
-      </motion.h3>
+        You're part of our beginning.
+      </motion.h2>
 
+      {/* Subheading */}
       <motion.p
-        initial={
-          reduceMotion
-            ? false
-            : { opacity: 0, y: 15 }
-        }
+        initial={reduceMotion ? false : { opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, delay: 0.4 }}
-        className="mt-4 text-base text-secondary-text leading-relaxed max-w-sm text-pretty"
+        transition={{ duration: 0.45, delay: 0.3 }}
+        className="mt-4 max-w-sm text-base leading-relaxed text-secondary-text"
       >
-        Thanks for sharing your details with sthero. We're glad
-        you're here.
+        Thank you for joining our early community.
       </motion.p>
 
-      <motion.p
-        initial={
-          reduceMotion
-            ? false
-            : { opacity: 0 }
-        }
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.5, delay: 0.5 }}
-        className="mt-4 text-xs text-secondary-text/70 max-w-xs"
-      >
-        {launchEmailConsent ? (
-          <span className="inline-flex items-start justify-center gap-2">
-            <Mail className="h-4 w-4 shrink-0 mt-0.5" />
-
-            Your details have been saved. You've opted in to receive
-            an email when sthero launches.
-          </span>
-        ) : (
-          'Your details have been saved successfully. Thank you for your interest in sthero.'
-        )}
-      </motion.p>
-
+      {/* Personalised guidance */}
       <motion.div
-        initial={
-          reduceMotion
-            ? false
-            : { opacity: 0, y: 15 }
-        }
+        initial={reduceMotion ? false : { opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, delay: 0.55 }}
-        className="mt-8 flex flex-col sm:flex-row items-center gap-3"
+        transition={{ duration: 0.45, delay: 0.4 }}
+        className="mt-7 w-full max-w-md rounded-2xl border border-warm-border bg-white/60 p-5 sm:p-6"
+      >
+        <p className="text-sm leading-[1.9] text-secondary-text sm:text-base">
+          Our team will connect with you to share suitable housing
+          options and personalised guidance.
+        </p>
+      </motion.div>
+
+      {/* Coming soon */}
+      <motion.div
+        initial={reduceMotion ? false : { opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.45, delay: 0.5 }}
+        className="mt-6 max-w-sm"
+      >
+        <p className="font-display text-base font-semibold text-charcoal">
+          A new way to find your place is coming.
+        </p>
+
+        <p className="mt-2 text-sm leading-relaxed text-secondary-text">
+          Our main website is launching soon. Stay connected!
+        </p>
+      </motion.div>
+
+      {/* Back to Home */}
+      <motion.div
+        initial={reduceMotion ? false : { opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.45, delay: 0.6 }}
+        className="mt-8 w-full sm:w-auto"
       >
         <a
           href="/"
-          className="inline-flex items-center gap-2 rounded-full bg-charcoal px-6 py-3 text-sm font-semibold text-ivory hover:bg-sage transition-all duration-300"
+          className="group inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-full bg-charcoal px-7 py-3.5 text-sm font-semibold text-ivory transition-all duration-300 hover:bg-sage focus:outline-none focus-visible:ring-2 focus-visible:ring-sage focus-visible:ring-offset-2 sm:w-auto"
         >
           <Home className="h-4 w-4" />
           Back to Home
+          <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
         </a>
-
-        <button
-          type="button"
-          onClick={onReset}
-          className="inline-flex items-center gap-2 rounded-full border border-warm-border px-6 py-3 text-sm font-medium text-secondary-text hover:bg-beige/60 hover:text-charcoal transition-all duration-200"
-        >
-          <RotateCcw className="h-4 w-4" />
-          Start again
-        </button>
       </motion.div>
     </motion.div>
   );

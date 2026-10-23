@@ -33,6 +33,8 @@ import {
   Check,
   Quote,
   MoveRight,
+  Mail,
+  Phone
 } from 'lucide-react';
 
 import ScrollReveal from '@/components/ScrollReveal';
@@ -182,10 +184,11 @@ const challengesList = [
   'Finding a trustworthy PG',
 ];
 
-type JourneyStage = 'searching' | 'found' | 'moved';
+
 
 const initialFeedback = {
-  journeyStage: 'searching' as JourneyStage,
+  email: '',
+  phoneNumber: '',
   challenges: [] as string[],
   city: '',
   experience: '',
@@ -345,7 +348,8 @@ export default function Home() {
 
     try {
       const { error } = await supabase.from('user_feedback').insert({
-        journey_stage: feedback.journeyStage,
+        email: feedback.email.trim() || null,
+        phone_number: feedback.phoneNumber.trim() || null,
         challenges: feedback.challenges,
         city: feedback.city.trim() || null,
         experience: feedback.experience.trim() || null,
@@ -393,6 +397,8 @@ export default function Home() {
   return (
     <main className="overflow-hidden bg-[#252c25] text-[#f8f6ef]">
       {/* HERO */}
+
+      {/* HERO */}
       <section className="relative isolate flex h-[100svh] min-h-[700px] max-h-[1100px] w-full items-center justify-center overflow-hidden bg-[#211b15]">
         <div className="absolute left-5 top-28 z-30 inline-flex items-center gap-2 rounded-full border border-[#c3d7ae]/30 bg-[#333d31]/90 px-4 py-2 text-xs font-semibold tracking-wide text-white shadow-lg backdrop-blur-md sm:left-8 sm:top-28 sm:text-sm lg:left-12">
           <span className="relative flex h-2 w-2">
@@ -402,6 +408,7 @@ export default function Home() {
           Early Access
         </div>
 
+        {/* Background slideshow */}
         <div className="absolute inset-0">
           <AnimatePresence initial={false}>
             <motion.img
@@ -428,6 +435,7 @@ export default function Home() {
           <div className="absolute inset-0 bg-gradient-to-t from-[#252c25] via-[#171b15]/10 to-[#171b15]/30" />
         </div>
 
+        {/* Hero content */}
         <div className="relative z-10 mx-auto flex w-full max-w-6xl flex-col items-center px-5 pb-20 pt-20 text-center sm:px-8 sm:pb-28">
           <motion.div
             initial={motionInitial}
@@ -444,36 +452,52 @@ export default function Home() {
               more personal, informed way to find your next place to live.
             </p>
 
-            <div className="mt-8 flex w-full max-w-[360px] flex-col gap-3 sm:mt-9 sm:max-w-none sm:flex-row sm:items-center sm:justify-center sm:gap-4">
-              <motion.button
-                type="button"
-                onClick={scrollToOnboarding}
-                whileHover={prefersReducedMotion ? undefined : { y: -3 }}
-                whileTap={{ scale: 0.98 }}
-                className="group inline-flex min-h-[54px] w-full items-center justify-center gap-3 rounded-full bg-[#f8f6ef] px-6 py-3.5 text-sm font-semibold text-[#252c25] shadow-xl transition-colors hover:bg-white sm:w-auto sm:px-7 sm:text-base"
-              >
-                <HomeIcon className="h-[19px] w-[19px] shrink-0" />
-                <span>Share Your Housing Needs</span>
-                <ArrowRight className="h-4 w-4 shrink-0 transition-transform group-hover:translate-x-1" />
-              </motion.button>
+            {/* CTA buttons with mobile supporting lines */}
+            <div className="mt-8 flex w-full max-w-[360px] flex-col gap-5 sm:mt-9 sm:max-w-none sm:flex-row sm:items-start sm:justify-center sm:gap-4">
 
-              <motion.button
-                type="button"
-                onClick={scrollToFeedback}
-                whileHover={prefersReducedMotion ? undefined : { y: -3 }}
-                whileTap={{ scale: 0.98 }}
-                className="group inline-flex min-h-[54px] w-full items-center justify-center gap-3 rounded-full border border-white/40 bg-black/20 px-6 py-3.5 text-sm font-semibold text-white backdrop-blur-md transition-colors hover:bg-white/15 sm:w-auto sm:px-7 sm:text-base"
-              >
-                <MessageSquareText className="h-[19px] w-[19px] shrink-0" />
-                <span>Share Your Experience</span>
-                <ArrowRight className="h-4 w-4 shrink-0 transition-transform group-hover:translate-x-1" />
-              </motion.button>
+              {/* CTA 1: Housing needs */}
+              <div className="flex w-full flex-col items-center sm:w-auto">
+                <motion.button
+                  type="button"
+                  onClick={scrollToOnboarding}
+                  whileHover={prefersReducedMotion ? undefined : { y: -3 }}
+                  whileTap={{ scale: 0.98 }}
+                  className="group inline-flex min-h-[54px] w-full items-center justify-center gap-3 rounded-full bg-[#f8f6ef] px-6 py-3.5 text-sm font-semibold text-[#252c25] shadow-xl transition-colors hover:bg-white sm:w-auto sm:px-7 sm:text-base"
+                >
+                  <HomeIcon className="h-[19px] w-[19px] shrink-0" />
+                  <span>Share Your Housing Needs</span>
+                  <ArrowRight className="h-4 w-4 shrink-0 transition-transform group-hover:translate-x-1" />
+                </motion.button>
+
+                <p className="mt-2.5 max-w-[320px] px-2 text-center text-[11px] leading-relaxed text-white/75 sm:hidden">
+                  Fill out your preferences so we can curate the best accommodations for you
+                </p>
+              </div>
+
+              {/* CTA 2: Share experience */}
+              <div className="flex w-full flex-col items-center sm:w-auto">
+                <motion.button
+                  type="button"
+                  onClick={scrollToFeedback}
+                  whileHover={prefersReducedMotion ? undefined : { y: -3 }}
+                  whileTap={{ scale: 0.98 }}
+                  className="group inline-flex min-h-[54px] w-full items-center justify-center gap-3 rounded-full border border-white/40 bg-black/20 px-6 py-3.5 text-sm font-semibold text-white backdrop-blur-md transition-colors hover:bg-white/15 sm:w-auto sm:px-7 sm:text-base"
+                >
+                  <MessageSquareText className="h-[19px] w-[19px] shrink-0" />
+                  <span>Share Your Experience</span>
+                  <ArrowRight className="h-4 w-4 shrink-0 transition-transform group-hover:translate-x-1" />
+                </motion.button>
+
+                <p className="mt-2.5 max-w-[320px] px-2 text-center text-[11px] leading-relaxed text-white/75 sm:hidden">
+                  Found a place or moved in already? Your experience matters.
+                </p>
+              </div>
+
             </div>
-
-            
           </motion.div>
         </div>
 
+        {/* Rotating search prompts */}
         <motion.div
           initial={motionInitial}
           animate={motionVisible}
@@ -495,6 +519,7 @@ export default function Home() {
           </AnimatePresence>
         </motion.div>
 
+        {/* Slideshow indicators */}
         <div className="absolute bottom-7 right-5 z-30 flex items-center gap-2 sm:right-8 lg:right-12">
           {heroImages.map((image, index) => (
             <button
@@ -512,12 +537,15 @@ export default function Home() {
         </div>
       </section>
 
+
       {/* ALL MIDDLE CONTENT USES ONE CONTINUOUS DARK BACKGROUND */}
       <div className="relative isolate overflow-hidden bg-[#252c25] text-white">
         <div className="pointer-events-none absolute -left-40 top-[8%] h-96 w-96 rounded-full bg-[#819475]/10 blur-[110px]" />
         <div className="pointer-events-none absolute -right-40 top-[43%] h-96 w-96 rounded-full bg-[#b9a17c]/[0.07] blur-[110px]" />
         <div className="pointer-events-none absolute -left-40 bottom-[12%] h-96 w-96 rounded-full bg-[#819475]/10 blur-[110px]" />
 
+        
+        
         {/* FIVE-STEP JOURNEY */}
         <section
           id="how-sthero-works"
@@ -563,7 +591,7 @@ export default function Home() {
                       data-journey-card
                       className={`${darkCard} w-[88%] shrink-0 snap-center`}
                     >
-                      {/* Balanced 4:3 image */}
+                      {/* Image */}
                       <div className="relative aspect-[4/3] overflow-hidden bg-[#343b32]">
                         <img
                           src={step.image}
@@ -575,9 +603,7 @@ export default function Home() {
                         <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-[#171d17]/90" />
                         <div className="absolute inset-0 bg-[#182019]/10" />
 
-                        <span className="absolute left-4 top-4 rounded-full border border-white/25 bg-[#202820]/75 px-3 py-1.5 text-[10px] font-semibold tracking-[0.16em] text-white backdrop-blur-md">
-                          STEP {step.number}
-                        </span>
+                        
 
                         <div className="absolute bottom-4 left-4 right-4 flex items-end justify-between gap-3">
                           <div>
@@ -595,34 +621,40 @@ export default function Home() {
                         </div>
                       </div>
 
-                      <div className="flex min-h-[260px] flex-col p-5">
-                        <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#b8c9a8]">
-                          {step.number} / 05
-                        </p>
+                      {/* Content: step number on the left */}
+                      <div className="flex min-h-[260px] gap-4 p-5">
+                        <div className="flex shrink-0 flex-col items-center">
+                          <span className="font-display text-3xl font-semibold leading-tight tracking-tight text-[#c3d7ae]">
+                            {step.number}
+                          </span>
+                          <div className="mt-3 w-px flex-1 bg-[#c3d7ae]/30" />
+                        </div>
 
-                        <h3 className="mt-3 font-display text-2xl font-semibold leading-tight tracking-[-0.025em] text-white">
-                          {step.title}
-                        </h3>
+                        <div className="flex min-w-0 flex-1 flex-col">
+                          <h3 className="font-display text-2xl font-semibold leading-tight tracking-[-0.025em] text-white">
+                            {step.title}
+                          </h3>
 
-                        <p className="mt-3 flex-1 text-sm leading-[1.8] text-white/65">
-                          {step.description}
-                        </p>
-
-                        <div className="mt-5 border-t border-white/10 pt-4">
-                          <p className="text-xs leading-relaxed text-[#c3d7ae]">
-                            {step.visualDetail}
+                          <p className="mt-3 flex-1 text-sm leading-[1.8] text-white/65">
+                            {step.description}
                           </p>
 
-                          {index === 0 && (
-                            <button
-                              type="button"
-                              onClick={scrollToOnboarding}
-                              className="mt-4 inline-flex min-h-11 items-center gap-2 rounded-full bg-[#e5e9dc] px-5 py-3 text-sm font-semibold text-[#252c25] transition hover:bg-white"
-                            >
-                              Tell us what you need
-                              <ArrowRight className="h-4 w-4" />
-                            </button>
-                          )}
+                          <div className="mt-5 border-t border-white/10 pt-4">
+                            <p className="text-xs leading-relaxed text-[#c3d7ae]">
+                              {step.visualDetail}
+                            </p>
+
+                            {index === 0 && (
+                              <button
+                                type="button"
+                                onClick={scrollToOnboarding}
+                                className="mt-4 inline-flex min-h-11 items-center gap-2 rounded-full bg-[#e5e9dc] px-5 py-3 text-sm font-semibold text-[#252c25] transition hover:bg-white"
+                              >
+                                Tell us what you need
+                                <ArrowRight className="h-4 w-4" />
+                              </button>
+                            )}
+                          </div>
                         </div>
                       </div>
                     </article>
@@ -630,10 +662,13 @@ export default function Home() {
                 })}
               </div>
 
+              {/* Carousel controls */}
               <div className="mt-4 flex items-center justify-between">
                 <button
                   type="button"
-                  onClick={() => scrollJourneyTo(Math.max(0, activeStep - 1))}
+                  onClick={() =>
+                    scrollJourneyTo(Math.max(0, activeStep - 1))
+                  }
                   aria-label="Previous journey step"
                   className="flex h-11 w-11 items-center justify-center rounded-full border border-white/15 bg-white/5 text-white transition hover:bg-white/10"
                 >
@@ -646,11 +681,13 @@ export default function Home() {
                       key={step.number}
                       type="button"
                       aria-label={`Show step ${index + 1}`}
-                      aria-current={activeStep === index ? 'step' : undefined}
+                      aria-current={
+                        activeStep === index ? 'step' : undefined
+                      }
                       onClick={() => scrollJourneyTo(index)}
                       className={`h-1.5 rounded-full transition-all ${activeStep === index
-                        ? 'w-8 bg-[#c3d7ae]'
-                        : 'w-1.5 bg-white/30'
+                          ? 'w-8 bg-[#c3d7ae]'
+                          : 'w-1.5 bg-white/30'
                         }`}
                     />
                   ))}
@@ -675,14 +712,16 @@ export default function Home() {
               </p>
             </div>
 
-            {/* Desktop cards: larger photos, spacious content */}
+            {/* Desktop cards */}
             <motion.div
               initial="hidden"
               whileInView="visible"
               viewport={{ once: true, amount: 0.08 }}
               variants={{
                 hidden: {},
-                visible: { transition: { staggerChildren: 0.1 } },
+                visible: {
+                  transition: { staggerChildren: 0.1 },
+                },
               }}
               className="hidden grid-cols-2 gap-5 sm:grid lg:grid-cols-3 xl:grid-cols-5"
             >
@@ -700,9 +739,12 @@ export default function Home() {
                         transition: { duration: 0.6, ease: easing },
                       },
                     }}
-                    whileHover={prefersReducedMotion ? undefined : { y: -6 }}
+                    whileHover={
+                      prefersReducedMotion ? undefined : { y: -6 }
+                    }
                     className={`${darkCard} group flex h-full flex-col transition-colors duration-300 hover:border-[#c3d7ae]/25 hover:bg-[#2d362d]`}
                   >
+                    {/* Image */}
                     <div className="relative aspect-[4/3] overflow-hidden bg-[#343b32]">
                       <motion.img
                         src={step.image}
@@ -710,16 +752,16 @@ export default function Home() {
                         loading="lazy"
                         className="h-full w-full object-cover brightness-[0.78] transition-[filter] duration-500 group-hover:brightness-[0.9]"
                         whileHover={
-                          prefersReducedMotion ? undefined : { scale: 1.045 }
+                          prefersReducedMotion
+                            ? undefined
+                            : { scale: 1.045 }
                         }
                         transition={{ duration: 0.65 }}
                       />
 
                       <div className="absolute inset-0 bg-gradient-to-t from-[#171d17]/90 via-[#171d17]/10 to-black/15" />
 
-                      <span className="absolute left-3 top-3 rounded-full border border-white/25 bg-[#202820]/75 px-2.5 py-1.5 text-[10px] font-semibold tracking-wider text-white backdrop-blur-md">
-                        STEP {step.number}
-                      </span>
+                      
 
                       <div className="absolute bottom-3 left-3 right-3">
                         <p className="text-[9px] font-semibold uppercase tracking-[0.13em] text-[#d3dfc5]">
@@ -731,30 +773,40 @@ export default function Home() {
                       </div>
                     </div>
 
-                    <div className="flex flex-1 flex-col p-5 lg:p-5">
-                      <h3 className="font-display text-xl font-semibold leading-snug tracking-[-0.025em] text-white">
-                        {step.title}
-                      </h3>
+                    {/* Content: step number on the left */}
+                    <div className="flex flex-1 gap-3 p-5">
+                      <div className="flex shrink-0 flex-col items-center">
+                        <span className="font-display text-2xl font-semibold leading-tight tracking-tight text-[#c3d7ae]">
+                          {step.number}
+                        </span>
+                        <div className="mt-3 w-px flex-1 bg-[#c3d7ae]/30" />
+                      </div>
 
-                      <p className="mt-3 flex-1 text-sm leading-[1.8] text-white/60">
-                        {step.description}
-                      </p>
+                      <div className="flex min-w-0 flex-1 flex-col">
+                        <h3 className="font-display text-xl font-semibold leading-snug tracking-[-0.025em] text-white">
+                          {step.title}
+                        </h3>
 
-                      <div className="mt-5 border-t border-white/10 pt-4">
-                        <p className="text-xs leading-relaxed text-[#c3d7ae]">
-                          {step.visualDetail}
+                        <p className="mt-3 flex-1 text-sm leading-[1.8] text-white/60">
+                          {step.description}
                         </p>
 
-                        {step.number === '01' && (
-                          <button
-                            type="button"
-                            onClick={scrollToOnboarding}
-                            className="group/cta mt-4 inline-flex items-center gap-2 text-sm font-semibold text-white transition-colors hover:text-[#c3d7ae]"
-                          >
-                            Get started
-                            <ArrowRight className="h-4 w-4 transition-transform group-hover/cta:translate-x-1" />
-                          </button>
-                        )}
+                        <div className="mt-5 border-t border-white/10 pt-4">
+                          <p className="text-xs leading-relaxed text-[#c3d7ae]">
+                            {step.visualDetail}
+                          </p>
+
+                          {step.number === '01' && (
+                            <button
+                              type="button"
+                              onClick={scrollToOnboarding}
+                              className="group/cta mt-4 inline-flex items-center gap-2 text-sm font-semibold text-white transition-colors hover:text-[#c3d7ae]"
+                            >
+                              Get started
+                              <ArrowRight className="h-4 w-4 transition-transform group-hover/cta:translate-x-1" />
+                            </button>
+                          )}
+                        </div>
                       </div>
                     </div>
                   </motion.article>
@@ -763,6 +815,7 @@ export default function Home() {
             </motion.div>
           </div>
         </section>
+
 
 
         {/* WHY STHERO */}
@@ -1240,6 +1293,8 @@ export default function Home() {
         </section>
 
         {/* SHARE YOUR EXPERIENCE — DARK SECTION AND DARK FORM CARD */}
+
+        {/* SHARE YOUR EXPERIENCE — DARK SECTION AND DARK FORM CARD */}
         <section
           id="share-experience"
           className="scroll-mt-5 relative border-t border-white/[0.08] px-5 py-16 sm:scroll-mt-8 sm:px-8 sm:py-24 lg:px-12 lg:py-28"
@@ -1251,9 +1306,7 @@ export default function Home() {
                   {feedbackStatus === 'success' ? (
                     <motion.div
                       key="success"
-                      initial={
-                        prefersReducedMotion ? false : { opacity: 0, y: 18 }
-                      }
+                      initial={prefersReducedMotion ? false : { opacity: 0, y: 18 }}
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0 }}
                       transition={{ duration: 0.45, ease: easing }}
@@ -1312,15 +1365,14 @@ export default function Home() {
                   ) : (
                     <motion.form
                       key="form"
-                      initial={
-                        prefersReducedMotion ? false : { opacity: 0, y: 12 }
-                      }
+                      initial={prefersReducedMotion ? false : { opacity: 0, y: 12 }}
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, y: -8 }}
                       transition={{ duration: 0.3 }}
                       onSubmit={submitFeedback}
                       className="space-y-7 sm:space-y-8"
                     >
+                      {/* INTRODUCTION */}
                       <div>
                         <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[#c3d7ae] sm:text-xs">
                           YOUR EXPERIENCE
@@ -1331,71 +1383,85 @@ export default function Home() {
                         </h3>
 
                         <p className="mt-3 text-sm leading-relaxed text-white/60">
-                          A few details can help us understand what people
-                          experience when searching for a place to live.
+                          Share your contact details and tell us about your
+                          experience finding a place to live.
                         </p>
                       </div>
 
-                      {/* JOURNEY STAGE */}
-                      <fieldset>
-                        <legend className="mb-3 text-sm font-semibold text-white">
-                          Where are you in your housing journey?
-                        </legend>
+                      {/* REQUIRED CONTACT DETAILS */}
+                      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+                        <div>
+                          <label
+                            htmlFor="feedback-email"
+                            className="mb-2 block text-sm font-semibold text-white"
+                          >
+                            Email address
+                            <span className="ml-1 text-red-300">*</span>
+                          </label>
 
-                        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-                          {[
-                            {
-                              value: 'searching' as const,
-                              label: 'Still searching',
-                              icon: Search,
-                            },
-                            {
-                              value: 'found' as const,
-                              label: 'Found a place',
-                              icon: CheckCircle2,
-                            },
-                            {
-                              value: 'moved' as const,
-                              label: 'Already moved',
-                              icon: HomeIcon,
-                            },
-                          ].map((stage) => {
-                            const Icon = stage.icon;
-                            const selected =
-                              feedback.journeyStage === stage.value;
+                          <div className="relative">
+                            <Mail className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-white/40" />
 
-                            return (
-                              <button
-                                key={stage.value}
-                                type="button"
-                                aria-pressed={selected}
-                                onClick={() =>
-                                  setFeedback((previous) => ({
-                                    ...previous,
-                                    journeyStage: stage.value,
-                                  }))
-                                }
-                                className={`flex min-h-[94px] flex-col items-start justify-between rounded-xl border p-3.5 text-left transition ${selected
-                                  ? 'border-[#c3d7ae]/60 bg-[#c3d7ae]/10'
-                                  : 'border-white/10 bg-[#252c25] hover:border-white/25'
-                                  }`}
-                              >
-                                <Icon
-                                  className={`h-5 w-5 ${selected ? 'text-[#c3d7ae]' : 'text-white/45'
-                                    }`}
-                                />
-
-                                <span className="flex w-full items-center justify-between gap-1 text-xs font-semibold text-white sm:text-sm">
-                                  {stage.label}
-                                  {selected && (
-                                    <Check className="h-4 w-4 shrink-0 text-[#c3d7ae]" />
-                                  )}
-                                </span>
-                              </button>
-                            );
-                          })}
+                            <input
+                              id="feedback-email"
+                              name="email"
+                              type="email"
+                              autoComplete="email"
+                              required
+                              maxLength={255}
+                              value={feedback.email}
+                              onChange={(event) =>
+                                setFeedback((previous) => ({
+                                  ...previous,
+                                  email: event.target.value,
+                                }))
+                              }
+                              placeholder="you@example.com"
+                              className={`${inputClass} pl-11`}
+                            />
+                          </div>
                         </div>
-                      </fieldset>
+
+                        <div>
+                          <label
+                            htmlFor="feedback-phone"
+                            className="mb-2 block text-sm font-semibold text-white"
+                          >
+                            Phone number
+                            <span className="ml-1 text-red-300">*</span>
+                          </label>
+
+                          <div className="relative">
+                            <Phone className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-white/40" />
+
+                            <input
+                              id="feedback-phone"
+                              name="phone_number"
+                              type="tel"
+                              autoComplete="tel"
+                              required
+                              maxLength={20}
+                              pattern="[+0-9][0-9\s()-]{8,19}"
+                              title="Enter a valid phone number with at least 9 digits."
+                              value={feedback.phoneNumber}
+                              onChange={(event) =>
+                                setFeedback((previous) => ({
+                                  ...previous,
+                                  phoneNumber: event.target.value,
+                                }))
+                              }
+                              placeholder="+91 98765 43210"
+                              className={`${inputClass} pl-11`}
+                            />
+                          </div>
+                        </div>
+                      </div>
+
+                      <p className="-mt-4 text-xs leading-relaxed text-white/45">
+                        Both contact details are required so we can follow up
+                        if needed. Your written feedback will be used anonymously
+                        only with your consent.
+                      </p>
 
                       {/* CHALLENGES */}
                       <fieldset>
@@ -1414,6 +1480,7 @@ export default function Home() {
                           {challengesList.map((challenge) => {
                             const checked =
                               feedback.challenges.includes(challenge);
+
                             const disabled =
                               !checked && feedback.challenges.length >= 8;
 
@@ -1435,6 +1502,7 @@ export default function Home() {
                                   onChange={() => toggleChallenge(challenge)}
                                   className="mt-0.5 h-4 w-4 shrink-0 accent-[#c3d7ae]"
                                 />
+
                                 <span className="text-sm leading-relaxed text-white/80">
                                   {challenge}
                                 </span>
@@ -1465,6 +1533,7 @@ export default function Home() {
 
                           <input
                             id="feedback-city"
+                            name="city"
                             type="text"
                             maxLength={100}
                             value={feedback.city}
@@ -1494,6 +1563,7 @@ export default function Home() {
 
                         <textarea
                           id="feedback-experience"
+                          name="experience"
                           value={feedback.experience}
                           onChange={(event) =>
                             setFeedback((previous) => ({
@@ -1526,6 +1596,7 @@ export default function Home() {
 
                         <textarea
                           id="feedback-suggestion"
+                          name="suggestion"
                           value={feedback.suggestion}
                           onChange={(event) =>
                             setFeedback((previous) => ({
@@ -1548,6 +1619,7 @@ export default function Home() {
                       <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-white/[0.07] bg-[#252c25] p-4">
                         <input
                           type="checkbox"
+                          required
                           checked={feedback.consentAnonymized}
                           onChange={(event) =>
                             setFeedback((previous) => ({
@@ -1559,11 +1631,12 @@ export default function Home() {
                         />
 
                         <span className="text-sm leading-relaxed text-white/60">
-                          I agree that sthero may use my feedback anonymously
-                          to understand accommodation challenges and improve
-                          its services. I understand that this does not
-                          authorize publication of my written story as a
-                          personal testimonial.
+                          I agree that sthero may use my written feedback
+                          anonymously to understand accommodation challenges and
+                          improve its services. I understand that this does not
+                          authorize publication of my written story as a personal
+                          testimonial.
+                          <span className="ml-1 text-red-300">*</span>
                         </span>
                       </label>
 
@@ -1619,9 +1692,11 @@ export default function Home() {
                       </button>
 
                       <p className="text-center text-xs leading-relaxed text-white/40">
-                        No name or email is requested in this form. Please
-                        avoid including sensitive personal information in your
-                        story.
+                        Your contact details will be stored with your feedback
+                        and may be used for follow-up. Your written feedback
+                        will only be used anonymously with your consent.
+                        Please avoid including sensitive personal information
+                        in your story.
                       </p>
                     </motion.form>
                   )}
@@ -1630,7 +1705,10 @@ export default function Home() {
             </ScrollReveal>
 
             {/* FORM INTRODUCTION */}
-            <ScrollReveal delay={0.12} className="order-2 lg:col-span-5 lg:pt-10">
+            <ScrollReveal
+              delay={0.12}
+              className="order-2 lg:col-span-5 lg:pt-10"
+            >
               <div className="lg:sticky lg:top-28">
                 <p className="text-[10px] font-semibold uppercase tracking-[0.24em] text-[#c3d7ae] sm:text-xs">
                   Your voice matters
@@ -1657,7 +1735,7 @@ export default function Home() {
                     {
                       icon: ShieldCheck,
                       title: 'Your privacy matters',
-                      text: 'The form does not ask for your name or email. Your feedback is used anonymously with your consent.',
+                      text: 'Your contact details are collected for follow-up. Your written feedback is used anonymously only with your consent.',
                     },
                     {
                       icon: Heart,
@@ -1680,6 +1758,7 @@ export default function Home() {
                           <h3 className="text-sm font-semibold text-white sm:text-base">
                             {item.title}
                           </h3>
+
                           <p className="mt-1.5 text-sm leading-relaxed text-white/55">
                             {item.text}
                           </p>
@@ -1692,6 +1771,8 @@ export default function Home() {
             </ScrollReveal>
           </div>
         </section>
+
+
       </div>
 
       {/* CLOSING CTA — INTENTIONALLY SEPARATE FROM THE DARK MIDDLE */}

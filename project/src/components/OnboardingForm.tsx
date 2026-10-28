@@ -429,7 +429,7 @@ export default function OnboardingForm() {
                     }
                     onBlur={() => handleBlur('phone')}
                     error={touched.phone ? errors.phone : undefined}
-                    placeholder="98765 43210"
+                    placeholder="9xxxx 7xxxx"
                     prefix="+91"
                     autoComplete="tel"
                   />

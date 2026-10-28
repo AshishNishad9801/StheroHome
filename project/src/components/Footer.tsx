@@ -6,8 +6,8 @@ export default function Footer() {
   const navigate = useNavigate();
 
   const handleGetStarted = () => {
-    if (location.pathname !== '/') {
-      navigate('/');
+    if (location.pathname !== '/get-started') {
+      navigate('/get-started');
       setTimeout(() => {
         document.getElementById('onboarding')?.scrollIntoView({ behavior: 'smooth' });
       }, 400);

@@ -400,7 +400,7 @@ export default function Home() {
 
       {/* HERO */}
       <section className="relative isolate flex h-[100svh] min-h-[700px] max-h-[1100px] w-full items-center justify-center overflow-hidden bg-[#211b15]">
-        <div className="absolute left-5 top-28 z-30 inline-flex items-center gap-2 rounded-full border border-[#c3d7ae]/30 bg-[#333d31]/90 px-4 py-2 text-xs font-semibold tracking-wide text-white shadow-lg backdrop-blur-md sm:left-8 sm:top-28 sm:text-sm lg:left-12">
+       <div className="absolute left-5 top-20 z-30 inline-flex items-center gap-2 rounded-full border border-[#c3d7ae]/30 bg-[#333d31]/90 px-4 py-2 text-xs font-semibold tracking-wide text-white shadow-lg backdrop-blur-md sm:left-8 sm:top-28 sm:text-sm lg:left-12">
           <span className="relative flex h-2 w-2">
             <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#d9e8c9] opacity-75" />
             <span className="relative inline-flex h-2 w-2 rounded-full bg-[#d9e8c9]" />
@@ -470,7 +470,7 @@ export default function Home() {
                 </motion.button>
 
                 <p className="mt-2.5 max-w-[320px] px-2 text-center text-[11px] leading-relaxed text-white/75 sm:hidden">
-                  Fill out your preferences so we can curate the best accommodations for you
+                  For people currently looking for accommodation
                 </p>
               </div>
 
@@ -489,7 +489,7 @@ export default function Home() {
                 </motion.button>
 
                 <p className="mt-2.5 max-w-[320px] px-2 text-center text-[11px] leading-relaxed text-white/75 sm:hidden">
-                  Found a place or moved in already? Your experience matters.
+                  For people who have already found a place or moved in 
                 </p>
               </div>
 
@@ -1382,45 +1382,12 @@ export default function Home() {
                           Help us understand your journey.
                         </h3>
 
-                        <p className="mt-3 text-sm leading-relaxed text-white/60">
-                          Share your contact details and tell us about your
-                          experience finding a place to live.
-                        </p>
+                        
                       </div>
 
                       {/* REQUIRED CONTACT DETAILS */}
                       <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
-                        <div>
-                          <label
-                            htmlFor="feedback-email"
-                            className="mb-2 block text-sm font-semibold text-white"
-                          >
-                            Email address
-                            <span className="ml-1 text-red-300">*</span>
-                          </label>
-
-                          <div className="relative">
-                            <Mail className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-white/40" />
-
-                            <input
-                              id="feedback-email"
-                              name="email"
-                              type="email"
-                              autoComplete="email"
-                              required
-                              maxLength={255}
-                              value={feedback.email}
-                              onChange={(event) =>
-                                setFeedback((previous) => ({
-                                  ...previous,
-                                  email: event.target.value,
-                                }))
-                              }
-                              placeholder="you@example.com"
-                              className={`${inputClass} pl-11`}
-                            />
-                          </div>
-                        </div>
+                        
 
                         <div>
                           <label
@@ -1442,7 +1409,7 @@ export default function Home() {
                               required
                               maxLength={20}
                               pattern="[+0-9][0-9\s()-]{8,19}"
-                              title="Enter a valid phone number with at least 9 digits."
+                              title="Enter a valid phone number with at least 10 digits."
                               value={feedback.phoneNumber}
                               onChange={(event) =>
                                 setFeedback((previous) => ({
@@ -1450,18 +1417,14 @@ export default function Home() {
                                   phoneNumber: event.target.value,
                                 }))
                               }
-                              placeholder="+91 98765 43210"
+                              placeholder="+91 9xxxx xxxx8"
                               className={`${inputClass} pl-11`}
                             />
                           </div>
                         </div>
                       </div>
 
-                      <p className="-mt-4 text-xs leading-relaxed text-white/45">
-                        Both contact details are required so we can follow up
-                        if needed. Your written feedback will be used anonymously
-                        only with your consent.
-                      </p>
+                      
 
                       {/* CHALLENGES */}
                       <fieldset>
